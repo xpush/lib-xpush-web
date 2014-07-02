@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Simple Example</title>
+</head>
+<body>
+^^;<br>
+
+<script src="../dist/xpush.min.js"></script>  
+<script type="text/javascript">
+// appId = gJlL7sFlO , appNm = notdol
+
+var xpush1 = new XPush('http://channel-a.stalk.io:8000', 'ABCDE_APP', 'CH001');
+
+xpush1.join('SESSION_UNIQUE_ID', function (data) {
+  xpush1.send('event01', {from:'xpush1', comments:'Hello there.'});
+});
+
+xpush1.message('event01', function (data){
+  console.log('event01 : ' + data.from + '-' + data.comments);
+});
+
+xpush1.message('event02', function (data){
+  console.log('event02 : ' + data.from + '-' + data.comments);
+});
+
+xpush1.message('event03', function (data){
+  console.log('event03 : ' + data.from + '-' + data.comments);
+});
+
+var xpush2 = new XPush('http://channel-a.stalk.io:8000', 'ABCDE_APP', 'CH002');
+xpush2.join('SESSION_UNIQUE_ID_2', function (data) {
+  xpush1.send('event02', {from:'xpush2', comments:'somthing from the other channel.'});
+});
+
+</script>
+
+</body>
+</html>

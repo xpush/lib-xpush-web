@@ -1,0 +1,26 @@
+{
+  "name": "xpush",
+  "title": "xpush javascript library",
+  "description": "The simplest way to develop real-time web communication on web browsers.",
+  "version": "0.1.0",
+  "homepage": "https://xpush.github.io",
+  "author": {
+    "name": "John Kim",
+    "email": "yohany@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xpush/lib-xpush-javascript.git"
+  },
+  "bugs": "https://github.com/xpush/lib-xpush-javascript/issues",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://xpush.github.io/blob/master/LICENSE-MIT"
+    }
+  ],
+  "dependencies": {
+    "jquery": "*"
+  },
+  "keywords": []
+}
