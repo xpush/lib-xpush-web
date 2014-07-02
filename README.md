@@ -18,13 +18,25 @@ In your web page:
 <script>
   var xpush = new XPush('http://local.host:8000', 'APP_ID');
   
-  xpush.message('msg', function (data){
-    console.log('message from someone : '+data.message);
+  var channel = xpuh.createChannel(['userId'], /* channelName(option)*/);
+  channel.send('key',{value1: 'value1', value2: 'value2'});
+
+  // =================== message receive 1 
+  xpush.message('message', function (data){
+    // channel is data.channel
+    // name is data.name
+    // data is data.data
+    console.log('message from someone : '+ data.data);
   });
-  
-  xpush.send('msg', {name:'John', message:'Hi Me?'}); 
-  
-});
+
+  // =================== message receive 1 
+    xpush.on('channel-created', function(data){
+        // data.chNm, data.ch
+        var channel2 = data.ch;
+        channel2.on('name',function(data){
+            channel2.send('name','this is return value');
+        })
+    });
 </script>
 ```
 

@@ -86,11 +86,11 @@ xpush1.login('notdol103','win1234',function(){
 		console.log(data);
 	});
 	*/
+	/*
 	xpush1.on('message',function(data){
 		console.log(data);
 	});
-
-	/*
+	*/
 	xpush1.on('channel-created', function(data){
 		// data.chNm, data.ch
 		console.log("==== channel-created : ",arguments);
@@ -101,7 +101,6 @@ xpush1.login('notdol103','win1234',function(){
 			channel.send('thisisreturn',{c:'c'});
 		})
 	});
-	*/
 	/*
 	var ch1 = xpush1.createChannel({users:['notdol']});
 	ch1.on('thisistest', function(){

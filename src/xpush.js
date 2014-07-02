@@ -76,7 +76,7 @@
     if(typeof(channel) == 'function' && !cb){
       cb = channel; channel = undefined;
     }
-    console.log("xpush : createChannel", users, channel==undefined?'':channel);
+    console.log("xpush : createChannel", users,channel);
     var newChannel;
     var channelNm = channel;
     var oldChNm = channelNm;
@@ -277,7 +277,6 @@
           var ch = self.getChannel(data.channel);
           if(!ch){
             ch = self._makeChannel(data.channel);
-
             self.getChannelInfo(data.channel,function(err,data){
               if(err){
                 console.log(" == node channel " ,err);
@@ -285,12 +284,11 @@
                 ch.setServerInfo(data.result);
               }
             });
-
             self.emit('channel-created', {ch: ch, chNm: data.channel});
             if(!self.isExistChannel(data.channel)) self.emit('newChannel', {chNm : data.channel });
           }
           ch.emit(data.name , data.data);
-          self._xpush.emit('message',{name: data.name, channel: data.channel, data: data.data});
+          self.emit('message',{name: data.name, channel: data.channel, data: data.data});
         break;
 
         case 'CONNECT' :
@@ -497,7 +495,7 @@
 
   Connection.prototype.send = function(name, data,cb){
   	var self = this;
-    if(self.isConnected){
+    if(self.isConnected){      
       self._socket.emit('send', {name: name , data: data}, cb);
     }else{
       self.messageStack.push({name: name, data: data});
