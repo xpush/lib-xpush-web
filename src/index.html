@@ -3,7 +3,8 @@
 	<title></title>
 </head>
 <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-<script src="https://cdn.socket.io/socket.io-1.0.6.js"></script>
+<!--script src="https://cdn.socket.io/socket.io-1.0.6.js"></script-->
+<script src="http://www.notdol.com:9990/socket.io/socket.io.js"></script>
 <!--script type="text/javascript" src="../libs/socketio/socket.io.js"></script-->
 <script type="text/javascript" src="xpush.js"></script>
 <script type="text/javascript">
@@ -91,16 +92,18 @@ xpush1.login('notdol103','win1234',function(){
 		console.log(data);
 	});
 	*/
+	/*
 	xpush1.on('channel-created', function(data){
 		// data.chNm, data.ch
 		console.log("==== channel-created : ",arguments);
-
+		return;
 		var channel = data.ch;
 		channel.on('thisistest',function(data){
 			console.log("== RM :",data);
 			channel.send('thisisreturn',{c:'c'});
 		})
 	});
+	*/
 	/*
 	var ch1 = xpush1.createChannel({users:['notdol']});
 	ch1.on('thisistest', function(){
@@ -112,7 +115,7 @@ var xpush2 = new XPush(HOST, APPID);
 
 xpush2.login('notdol104','win1234',function(){
 	var ch2 = xpush2.createChannel(['notdol103']);
-	ch2.send('message',{a:'a',b:'b'});
+	//ch2.send('message',{a:'a',b:'b'});
 
 	/*
 	setInterval(function(){

@@ -1,0 +1,52 @@
+<html>
+<head>
+	<title></title>
+</head>
+<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<!--script src="https://cdn.socket.io/socket.io-1.0.6.js"></script-->
+<script src="http://www.notdol.com:9990/socket.io/socket.io.js"></script>
+<!--script type="text/javascript" src="../libs/socketio/socket.io.js"></script-->
+<script type="text/javascript" src="../src/xpush.js"></script>
+<script type="text/javascript">
+
+var HOST = "http://www.notdol.com:8000";
+var APPID = 'stalk-io';
+
+var xpush1 = new XPush(HOST, APPID);
+
+xpush1.login('notdol103','win1234',function(){
+	xpush1.getGroupUsers(/*groupId(option),*/ function(data){
+		console.log("=============== getGroupUsers", data);
+	});
+
+	xpush1.addUserToGroup(/*groupId(option),*/ ['notdol101'], function(data){
+		console.log("============== addUserToGroup" , data);
+	});
+
+	xpush1.addUserToGroup(/*groupId(option),*/ ['notdol102','notdol103'], function(data){
+		console.log("============== addUserToGroup" , data);
+	});
+
+	xpush1.addUserToGroup(/*groupId(option),*/ ['notdol103','notdol104'], function(data){
+		console.log("============== addUserToGroup" , data);
+	});
+
+	setTimeout(function(){
+		xpush1.getGroupUsers(/*groupId(option),*/ function(data){
+			console.log("=============== getGroupUsers", data);
+		});
+
+		xpush1.removeUserFromGroup(/*groupId(option),*/ 'notdol101', function(data){
+			console.log("================= removeUserFromGroup", data);
+		});
+	});
+
+
+});
+
+
+</script>
+<body>
+
+</body>
+</html>

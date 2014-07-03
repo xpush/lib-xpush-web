@@ -227,30 +227,32 @@
     self.ajax( XPush.Context.NODE+'/'+self.appId+'/'+channel , 'GET', {}, cb);
   };
 
-  XPush.prototype.getGroupUsers = function(groupId){
+  XPush.prototype.getGroupUsers = function(groupId,cb){
     var self = this;
-    groupId = groupId == undefined? groupId : self.userId;
-    self.sEmit('channel-list',{groupId: groupId}, function(err,result){
+	if(typeof(arguments[0]) == 'function') {cb = arguments[0]; groupId = undefined;}
+    groupId = groupId ? groupId : self.userId;
+    self.sEmit('group-list',{groupId: groupId}, function(err,result){
       cb(result);
     });    
   }
 
-  XPush.prototype.addUserToGroup = function(groupId, userIds){
+  XPush.prototype.addUserToGroup = function(groupId, userIds,cb){
     var self = this;
-    groupId = groupId != undefined ? groupId : self.userId;
-    userIds = userIds != undefined ? userIds : [];
-
+	if(typeof(arguments[1]) == 'function') {cb = arguments[1]; userIds = groupId; grouId = undefined;}
+    groupId = groupId ? groupId : self.userId;
+    userIds = userIds ? userIds : [];
     self.sEmit('group-add',{groupId: groupId, userIds: userIds}, function(err,result){
       //app, channel, created 
       cb(result);
     });    
   }
 
-  XPush.prototype.addUserToGroup = function(groupId, userId){
+  XPush.prototype.removeUserFromGroup = function(groupId, userId, cb){
     var self = this;
-    groupId = groupId != undefined ? groupId : self.userId;
+	if(typeof(arguments[1]) == 'function') {cb = arguments[1]; userId = groupId; groupId = undefined;}
+    groupId = groupId ? groupId : self.userId;
 
-    self.sEmit('group-remove',{groupId: groupId, userIds: userId}, function(err, result){
+    self.sEmit('group-remove',{groupId: groupId, userId: userId}, function(err, result){
         cb(result);
     });    
   };
@@ -288,7 +290,7 @@
             if(!self.isExistChannel(data.channel)) self.emit('newChannel', {chNm : data.channel });
           }
           ch.emit(data.name , data.data);
-          self.emit('message',{name: data.name, channel: data.channel, data: data.data});
+          self.emit('message', data.channel, data.name, data.dataa);
         break;
 
         case 'CONNECT' :
@@ -486,6 +488,11 @@
       var t = self.messageStack.splice(0,1)[0];
       self.send(t.name, t.data);
     };
+
+	self._socket.on('message',function(data){
+		console.log("xpush : channel receive ", data, self._xpush.userId);
+		self._xpush.emit('message', self.chNm, 'message', data);
+	});
   };
 
   Connection.prototype.disconnect = function(){
