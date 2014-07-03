@@ -63,6 +63,7 @@
     			self.initSessionSocket(self._sessionConnection._socket, cbLogin);
     		});
       }else{
+        cb(result.message);
       	alert('xpush : login error'+ result.message);
       }
     });
@@ -98,6 +99,7 @@
           if(oldChNm){
             delete channels[oldChNm];
           }
+          if(cb)cb(null);
         }
       });
     });
@@ -111,7 +113,7 @@
     self.sEmit('channel-list',function(err, result){
       //app, channel, created 
       console.log("xpush : getChannels end ",result);
-      cb(result);
+      cb(err,result);
     });
   };
 
@@ -137,14 +139,14 @@
   XPush.prototype.joinChannel = function(chNm, /*userId,*/ cb){
     var self = this;
     self.sEmit('channel-join', {channel: chNm, userId: /*userId*/{} }, function(err, result){
-      if(cb) cb(result);
+      if(cb) cb(err,result);
     });
   }
 
   XPush.prototype.exitChannel = function(chNm, cb){
   	var self = this;
   	self.sEmit('channel-exit', {channel: chNm}, function(err, result){
-        if(cb) cb(result);
+        if(cb) cb(err,result);
   	});
   };
 
@@ -189,8 +191,9 @@
   };
 
   XPush.prototype.isExistChannel = function(chNm){
-  	for(var i = 0 ; i < this.channelNameList.length ; i++){
-  		if(this.channelNameList[i] == chNm){
+    var self = this;
+  	for(var i = 0 ; i < self.channelNameList.length ; i++){
+  		if(self.channelNameList[i] == chNm){
   			return true;
   		}
   	}
@@ -232,18 +235,18 @@
 	if(typeof(arguments[0]) == 'function') {cb = arguments[0]; groupId = undefined;}
     groupId = groupId ? groupId : self.userId;
     self.sEmit('group-list',{groupId: groupId}, function(err,result){
-      cb(result);
+      cb(err,result);
     });    
   }
 
   XPush.prototype.addUserToGroup = function(groupId, userIds,cb){
     var self = this;
-	if(typeof(arguments[1]) == 'function') {cb = arguments[1]; userIds = groupId; grouId = undefined;}
+  	if(typeof(arguments[1]) == 'function') {cb = arguments[1]; userIds = groupId; groupId = undefined;}
     groupId = groupId ? groupId : self.userId;
     userIds = userIds ? userIds : [];
     self.sEmit('group-add',{groupId: groupId, userIds: userIds}, function(err,result){
       //app, channel, created 
-      cb(result);
+      cb(err,result);
     });    
   }
 
@@ -253,7 +256,7 @@
     groupId = groupId ? groupId : self.userId;
 
     self.sEmit('group-remove',{groupId: groupId, userId: userId}, function(err, result){
-        cb(result);
+        cb(err,result);
     });    
   };
 
@@ -287,10 +290,15 @@
               }
             });
             self.emit('channel-created', {ch: ch, chNm: data.channel});
-            if(!self.isExistChannel(data.channel)) self.emit('newChannel', {chNm : data.channel });
+            /*
+            if(self.isExistChannel(data.channel) == false) {
+              return;
+              self.emit('newChannel', {chNm : data.channel });
+            }
+            */
           }
           ch.emit(data.name , data.data);
-          self.emit('message', data.channel, data.name, data.dataa);
+          self.emit('message', data.channel, data.name, data.data);
         break;
 
         case 'CONNECT' :
@@ -412,7 +420,6 @@
     this._type = type;
     this._socketStatus; // disconnected, connected
     this._socket;
-    this.isConnected = false;
     this.checkTimer;
   	this.info;
     this.messageStack = [];
@@ -472,14 +479,10 @@
 
     console.log( 'xpush : socketconnect', self._server.serverUrl+'/'+self._type+'?'+query);
     this._socket.on('connect', function(){
-      self.isConnected = true;
       self.connectionCallback();
       cbConnect(); 
     });
 
-    this._socket.on('disconnect',function(){
-      self.isConnected = false;
-    });
   };
 
   Connection.prototype.connectionCallback = function(){
@@ -490,6 +493,7 @@
     };
 
 	self._socket.on('message',function(data){
+    return;
 		console.log("xpush : channel receive ", data, self._xpush.userId);
 		self._xpush.emit('message', self.chNm, 'message', data);
 	});
@@ -502,8 +506,8 @@
 
   Connection.prototype.send = function(name, data,cb){
   	var self = this;
-    if(self.isConnected){      
-      self._socket.emit('send', {name: name , data: data}, cb);
+    if(self._socket.connected){
+      self._socket.emit('send', {name: name , data: data});
     }else{
       self.messageStack.push({name: name, data: data});
     }  	
@@ -593,5 +597,5 @@
   4. send 는 channel 정보의 서버로 rest 로 던진다. socket이 연결되어 있으면 socket 으로 전송 ( send 함수 )
   5. listen 하기 위한 Message Socket 은 최근 5초간(설정) 연속적인 메시지가 가장 많은 곳으로 다시 연결한다??
 */
-}).call(this);
+})();
 

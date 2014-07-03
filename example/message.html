@@ -18,14 +18,14 @@ console.log(xpush1);
 
 xpush1.login('notdol103','win1234',function(){
 	xpush1.on('message', function(channel, name, data){
-		console.log("===== this is awesome : ", channel, name, data);
+		//console.log("===== this is awesome : ", channel, name, data);
 	});
 });
 
 var xpush2 = new XPush(HOST, APPID);
 
 xpush2.login('notdol104','win1234',function(){
-	var ch2 = xpush2.createChannel(['notdol103']);
+	var ch2 = xpush2.createChannel(['notdol103'],undefined);
 	var count = 0;
 	var t = setInterval(function(){
 		ch2.send('message',{count: count++});
