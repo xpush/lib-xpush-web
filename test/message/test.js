@@ -71,7 +71,7 @@ async.series([
 					assert.equal(err, null, "channel connect complete!");
 					assert.ok(result, "retrieve channel complete!");
 					assert.ok(result.length > 0 , 'channel create one!');
-					assert.equal(result[0].channel , channel.chNm , 'channel name is right!');
+					assert.equal(result[result.length-1].channel , channel.chNm , 'channel name is right!');
 					CHANNEL.push(channel);
 					QUnit.start(); cb(null);
 				});
@@ -82,36 +82,43 @@ async.series([
 
     function(cb){
 		QUnit.asyncTest("send Message & receive Message 1 ",function(assert){
-			expect(1);
+			expect(6);
 			var channel = CHANNEL[0];
 			var channelName = channel.chNm;
 
 			var sendData = {"a":"a"};
 			var sendName = 'message';
-			QUnit.start(); cb(null);
-			console.log(channel);
-			channel.send('message',{count: 0});
-			return;
-
-			xpush1.on('message',function(ch,name,data){
-				console.log("notdol ",ch,name,data);
+			xpush.on('message',function(ch,name,data){
 				assert.equal(ch, channelName, "channel name is right1!");
 				assert.equal(name, sendName, "send name is right1!");
-				assert.equal(data, sendData, "send data is right1!");				
+				//assert.equal(sendData, data, "send data is right1!");
+				alert('a');
+				cnt++; checkComplete();
+			});
+
+			xpush1.on('message',function(ch,name,data){
+				assert.equal(ch, channelName, "channel name is right1!");
+				assert.equal(name, sendName, "send name is right1!");
+				//assert.equal(sendData, data, "send data is right1!");	
 				cnt++; checkComplete();
 			});
 
 			xpush2.on('message',function(ch,name,data){
-				console.log("notdol ",ch,name,data);				
 				assert.equal(ch, channelName, "channel name is right2!");
 				assert.equal(name, sendName, "send name is right2!");
-				assert.equal(data, sendData, "send data is right2!");	
+				//assert.equal(sendData, data, "send data is right2!");	
 				cnt++; checkComplete();
 			});
-			var completeCnt = 2;
+
+			channel.send(sendName,sendData);
+
+			sendData.channel = channelName;
+
+			var completeCnt = 3;
 			var cnt = 0 ;
 			var checkComplete = function(){
-				if(complete == cnt) {
+				alert(cnt);
+				if(completeCnt <= cnt) {
 					QUnit.start(); cb(null);
 				}
 			}

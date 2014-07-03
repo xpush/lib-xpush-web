@@ -26,6 +26,8 @@
     self.maxTimeout = 30000;
   	self.channelNameList = [];
     self.hostname = host;
+    self.receiveMessageStack = [];
+    self.isExistUnread = true;
 
   	self.on('newChannel',function(data){
   		self.channelNameList.push( data.chNm );
@@ -220,7 +222,7 @@
     self.sEmit('message-unread',function(err, result){
       //app, channel, created 
       console.log("xpush : getUnreadMessage ", result);
-      cb(result);
+      cb(err, result);
     });
   };
 
@@ -290,12 +292,9 @@
               }
             });
             self.emit('channel-created', {ch: ch, chNm: data.channel});
-            /*
-            if(self.isExistChannel(data.channel) == false) {
-              return;
+            if(!self.isExistChannel(data.channel)) {
               self.emit('newChannel', {chNm : data.channel });
             }
-            */
           }
           ch.emit(data.name , data.data);
           self.emit('message', data.channel, data.name, data.data);
@@ -329,7 +328,7 @@
       console.log('xpush : session receive ', 'channel', arguments, self.userId);
     });
 
-    self.getChannels(function(data){
+    self.getChannels(function(err,data){
       self.channelNameList = data;
       cb();
     });
@@ -380,22 +379,47 @@
 
   XPush.prototype.on = function(event, fct){
     var self = this;
+    self._events = self._events || {};
+    self._events[event] = self._events[event] || [];
+    self._events[event].push(fct);
+
     if(event == RMKEY ){
-      self.getUnreadMessage(function(data){
+      self.getUnreadMessage(function(err, data){
+        if(data && data.length > 0 ) 
+        for(var i = data.length ; i > 0; i--){
+          data[i].message.data = JSON.parse(data[i].message.data);
+          receiveMessageStack.shift([RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data]);
+          //self.emit(RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data);
+        }
+        self.isExistUnread = false;
+        for(var i = 0 ; i < self.receiveMessageStack.length;i++){
+          self.emit.apply(self, self.receiveMessageStack[i]);  
+        }
+      });
+    };        
+    /*
+    if(event == RMKEY ){
+      self.getUnreadMessage(function(err, data){
+        console.log("================================= " ,data);
         self._events = self._events || {};
         self._events[event] = self._events[event] || [];
         self._events[event].push(fct);
+
         if(data && data.length > 0 ) 
-        for(var i = 0 ; i < data.length; i++){
+        for(var i = data.length ; i > 0; i--){
           data[i].message.data = JSON.parse(data[i].message.data);
-          self.emit(RMKEY, {name: data[i].name, channel: data[i].message.data.channel, data: data[i].message.data});
+          receiveMessageStack.shift([RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data]);
+          //self.emit(RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data);
         }
+
+        self.isExistUnread = false;
       });
     }else{
       self._events = self._events || {};
       self._events[event] = self._events[event] || [];
       self._events[event].push(fct);
     }
+    */
   };
 
   XPush.prototype.off = function(event, fct){
@@ -406,11 +430,16 @@
   };
   XPush.prototype.emit = function(event){
     var self = this;
-    self._events = self._events || {};
-    if( event in self._events === false  )  return;
-    for(var i = 0; i < self._events[event].length; i++){
-      self._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
-    };
+
+    if(self.isExistUnread) {
+      receiveMessageStack.push(arguments);  
+    }else{
+      self._events = self._events || {};
+      if( event in self._events === false  )  return;
+      for(var i = 0; i < self._events[event].length; i++){
+        self._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+      };      
+    }
   };
 
   var Connection = function(xpush , type, server){
@@ -492,11 +521,10 @@
       self.send(t.name, t.data);
     };
 
-	self._socket.on('message',function(data){
-    return;
-		console.log("xpush : channel receive ", data, self._xpush.userId);
-		self._xpush.emit('message', self.chNm, 'message', data);
-	});
+  	self._socket.on('message',function(data){
+  		console.log("xpush : channel receive ", self.chNm, data, self._xpush.userId);
+  		self._xpush.emit(RMKEY, self.chNm, RMKEY , data);
+  	});
   };
 
   Connection.prototype.disconnect = function(){
