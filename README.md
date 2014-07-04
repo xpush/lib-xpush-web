@@ -6,45 +6,112 @@ The simplest way to develop real-time web communication on web browsers.
 
 [![Built with Grunt](https://cdn.gruntjs.com/builtwith.png)](http://gruntjs.com/)
 
-## Getting Started
+## Install 
+Just add script in your web page : 
 Download the [production version][min].
 
 [min]: https://raw.github.com/xpush/lib-xpush-javascript/master/dist/xpush.min.js
 
+```html
+<script src="xpush.min.js"></script>
+```
+
+## Getting Started
+
 In your web page:
 
+Data send
 ```html
-<script src="dist/xpush.min.js"></script>
 <script>
-  var xpush = new XPush('http://local.host:8000', 'APP_ID');
-  
-  var channel = xpuh.createChannel(['userId'], /* channelName(option)*/);
-  channel.send('key',{value1: 'value1', value2: 'value2'});
-
-  // =================== message receive 1 
-  xpush.message('message', function (data){
-    // channel is data.channel
-    // name is data.name
-    // data is data.data
-    console.log('message from someone : '+ data.data);
+  var xpush1 = new XPush('http://local.host:8000', 'APP_ID');
+  xpush1.login('userid1','password',function(){
+      xpush1.send('channelname','name',data);
   });
+</script>
+```
 
-  // =================== message receive 1 
-    xpush.on('channel-created', function(data){
-        // data.chNm, data.ch
-        var channel2 = data.ch;
-        channel2.on('name',function(data){
-            channel2.send('name','this is return value');
-        })
+Other user receive data
+```html
+<script>
+  var xpush2 = new XPush('http://local.host:8000', 'APP_ID');
+  xpush2.login('userid2','password',function(){
+    xpush2.on('message',function(channel, name, data){
+      // channel is channelname, name is key, data is data!
     });
+  });
 </script>
 ```
 
 ## Documentation
+
 _(Coming soon)_
 
 ## Examples
-_(Coming soon)_
+#### message send
+
+Use XPush Object! But you must know your target channel name;
+```html
+<script>
+  var xpush1 = new XPush('http://local.host:8000', 'APP_ID');
+  xpush1.login('userid1','password',function(){
+      xpush1.send('channelname','name',data);
+  });
+</script>
+```
+
+Channel Create & Use Channel Object
+```html
+<script>
+  var xpush2 = new XPush('http://local.host:8000', 'APP_ID');
+  
+  xpush2.login('userid2','password',function(){
+    var channel = xpush2.createChannel([userid1, userid2 ...], /*channelName(option),*/ function(err, channelName){
+
+      });
+    channel.send('name',data);
+  });
+</script>
+```
+
+#### receive message
+```html
+<script>
+  var xpush3 = new XPush('http://local.host:8000', 'APP_ID');
+  
+  xpush3.login('userid3','password',function(){
+    xpush3.on('message',function(channelname, name, data){
+      // read unreadmessages & ready to receive messages
+    });
+  });
+</script>
+```
+
+#### create channel
+```html
+<script>
+  var xpush4 = new XPush('http://local.host:8000', 'APP_ID');
+  
+  xpush4.login('userid4','password',function(){
+    var channel = xpush4.createChannel([userid1, userid2 ...], /*channelName(option),*/ function(err, channelName){
+
+      });
+  });
+</script>
+```
+#### create channel event
+
+```html
+<script>
+  var xpush = new XPush('http://local.host:8000', 'APP_ID');
+  
+  xpush.login('userid','password',function(){
+    xpush.on('newchannel',function(chnnelObject){
+      // channelname is : channelObject.chNm
+    });
+  });
+</script>
+```
+
 
 ## Release History
 _(Nothing yet)_
