@@ -10,7 +10,7 @@ The simplest way to develop real-time web communication on web browsers.
 Just add script in your web page : 
 Download the [production version][min].
 
-[min]: https://raw.github.com/xpush/lib-xpush-javascript/master/dist/xpush.min.js
+[min]: https://raw.githubusercontent.com/xpush/lib-xpush-web/master/src/xpush.js
 
 ```html
 <script src="xpush.min.js"></script>
