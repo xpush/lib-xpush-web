@@ -4,8 +4,8 @@
 </head>
 <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 <!--script src="https://cdn.socket.io/socket.io-1.0.6.js"></script-->
-<script src="http://www.notdol.com:9990/socket.io/socket.io.js"></script>
-<!--script type="text/javascript" src="../libs/socketio/socket.io.js"></script-->
+<!--script src="http://www.notdol.com:9990/socket.io/socket.io.js"></script-->
+<script type="text/javascript" src="../libs/socketio/socket.io.js"></script>
 <script type="text/javascript" src="xpush.js"></script>
 <script type="text/javascript">
 
@@ -41,11 +41,12 @@ xpush1.init('stalk.io',function(){
 });
 
 */
+/*
 for(var i = 1 ; i <= 100; i++){
 xpush1.signup('notdol'+(100+i),'win1234',function(){
 	console.log('success');
 });
-}
+}*/
 xpush1.login('notdol103','win1234',function(){
 	/*
 	xpush1.signup('notdol'+(100+i), 'win1234',function(){
@@ -112,7 +113,9 @@ xpush1.login('notdol103','win1234',function(){
 var xpush2 = new XPush(HOST, APPID);
 
 xpush2.login('notdol104','win1234',function(){
-	var ch2 = xpush2.createChannel(['notdol103']);
+	//throw new Error();
+	asdflkjasdf;
+	//var ch2 = xpush2.createChannel(['notdol103']);
 	//ch2.send('message',{a:'a',b:'b'});
 
 	/*
