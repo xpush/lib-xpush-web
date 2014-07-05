@@ -105,7 +105,7 @@
           if(oldChNm){
             delete channels[oldChNm];
           }
-          if(cb)cb(null);
+          if(cb)cb(null, channelNm);
         }
       });
     });
@@ -221,6 +221,24 @@
     });
   };
 
+  XPush.prototype.send = function(channel, name, data){
+    // 채널이 생성되어 있지 않으면 
+    var self = this;
+    var ch = self.getChannel(channel);
+    if(!ch){
+      self._channels[channel] = ch;
+      ch = self._makeChannel();
+      self.getChannelInfo(channel,function(err,data){
+        if(err){
+          console.log(" == node channel " ,err);
+        }else if ( data.status == 'ok'){
+          ch.setServerInfo(data.result);
+        }
+      });
+    }
+    ch.send(name,data);
+  };
+
   XPush.prototype.getUnreadMessage = function(cb){
     var self = this;
     console.log("xpush : getUnreadMessage ",self.userId);
@@ -300,9 +318,9 @@
                 ch.setServerInfo(data.result);
               }
             });
-            self.emit('channel-created', {ch: ch, chNm: data.channel});
+            //self.emit('channel-created', {ch: ch, chNm: data.channel});
             if(!self.isExistChannel(data.channel)) {
-              self.emit('newChannel', {chNm : data.channel });
+              self.emit('newChannel', ch);
             }
           }
           ch.emit(data.name , data.data);
@@ -489,7 +507,7 @@
     this.checkTimer;
   	this.info;
     this.messageStack = [];
-
+    this.isFirtConnect = true;
 
     //self.on('received', function(data){
       //self._xpush.calcChannel(self);
@@ -509,7 +527,7 @@
     }    
   }
 
-  Connection.prototype.setServerInfo = function(info){
+  Connection.prototype.setServerInfo = function(info,cb){
     console.log("xpush : setServerInfo ", info);
     var self = this;
   	self.info = info;
@@ -517,7 +535,8 @@
   	self.chNm = info.channel;
   	self.connect(function(){
       console.log("xpush : setServerInfo end ", arguments,self._xpush.userId, self.chNm);
-      //self.connectionCallback();      
+      //self.connectionCallback();     
+      if(cb) cb(); 
   	});
   };
 
@@ -525,8 +544,6 @@
     var self = this;
       var query =
         'app='+self._xpush.appId+'&'+
-        //'channel='+CONF._channel+'&'+
-        //'server='+data.result.server.name+'&'+
         'userId='+self._xpush.userId+'&'+
         'deviceId=WEB'+'&'+
         'token='+self._server.token;
@@ -545,6 +562,13 @@
 
     console.log( 'xpush : socketconnect', self._server.serverUrl+'/'+self._type+'?'+query);
     self._socket.on('connect', function(){
+      while(self.messageStack.length > 0 ){
+        var t = self.messageStack.shift();
+        self.send(t.name, t.data);
+      };
+
+      if(!self.isFirtConnect) return;
+      self.isFirtConnect = false;
       self.connectionCallback(cbConnect);
     });
   };
@@ -552,11 +576,6 @@
   Connection.prototype.connectionCallback = function(cb){
     var self = this;
     console.log("xpush : connection ",'connectionCallback',self._type, self._xpush.userId,self.chNm);
-
-    while(self.messageStack.length > 0 ){
-      var t = self.messageStack.splice(0,1)[0];
-      self.send(t.name, t.data);
-    };
 
   	self._socket.on('message',function(data){
   		console.log("xpush : channel receive ", self.chNm, data, self._xpush.userId);
