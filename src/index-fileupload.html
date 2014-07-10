@@ -6,11 +6,45 @@
 <!--script src="https://cdn.socket.io/socket.io-1.0.6.js"></script-->
 <!--script src="http://www.notdol.com:9990/socket.io/socket.io.js"></script-->
 <script type="text/javascript" src="../libs/socketio/socket.io.js"></script>
+<script type="text/javascript" src="../libs/socketio/socket.io-stream.js"></script>
 <script type="text/javascript" src="xpush.js"></script>
+
+<body>
+
+ FILE : <input id="uploadFile" type="file" />
+<input type="button" id="addButton" value="Upload File">
+
 <script type="text/javascript">
 
-var HOST = "http://www.notdol.com:8000";
-var APPID = 'stalk-io';
+var HOST = "http://stalk-front-s01.cloudapp.net:8000";
+var APPID = 'messengerx';
+
+var xpush = new XPush(HOST, APPID);
+
+xpush.login('stkim','1111', 'ionic', function(err){
+
+	xpush.createChannel(['stkim', 'test1'], 'TEST_CH01', function(err, name){
+
+		xpush.send('TEST_CH01', 'AAAA',{data:'asdf'});
+
+	});
+
+});
+
+
+var button = document.getElementById("addButton");
+
+button.onclick = function(e){
+
+	var fileObject = document.getElementById("uploadFile");
+
+	xpush.uploadFile('TEST_CH01', fileObject, function(err, data){
+
+	});
+
+};
+
+
 
 // appId = gJlL7sFlO , appNm = notdol
 /*
@@ -32,9 +66,6 @@ xpush1.on('exit', function(channelName, userId){
 });
 */
 
-var xpush1 = new XPush(HOST, APPID);
-
-
 /*
 xpush1.init('stalk.io',function(){
 	console.log("===== stalk.io");
@@ -47,7 +78,7 @@ xpush1.signup('notdol'+(100+i),'win1234',function(){
 	console.log('success');
 });
 }*/
-xpush1.login('notdol103','win1234',function(){
+//xpush.login('notdol103','win1234',function(){
 	/*
 	xpush1.signup('notdol'+(100+i), 'win1234',function(){
 		console.log('signin');
@@ -109,62 +140,35 @@ xpush1.login('notdol103','win1234',function(){
 
 	});
 	*/
-});
-var xpush2 = new XPush(HOST, APPID);
-
-xpush2.login('notdol104','win1234',function(){
-	//throw new Error();
-	asdflkjasdf;
-	//var ch2 = xpush2.createChannel(['notdol103']);
-	//ch2.send('message',{a:'a',b:'b'});
-
-	/*
-	setInterval(function(){
-		ch2.send('thisistest',{a:'a',b:'b'});
-
-	},2000);
-
-	xpush2.getUserList(function(data){
-		console.log(data);
-	});
-
-
-	setInterval(function(){
-		ch2.disconnect();
-	},20000);
-
-	ch2.on('thisisreturn',function(data){
-		console.log("== RM : ", data);
-	})
-	*/
-});
+//});
 
 /*
 var xpush1 = new XPush('http://channel-a.stalk.io:8000', 'ABCDE_APP', 'CH001');
 
 xpush1.join('SESSION_UNIQUE_ID', function (data) {
-  xpush1.send('event01', {from:'xpush1', comments:'Hello there.'});
+	xpush1.send('event01', {from:'xpush1', comments:'Hello there.'});
 });
 
 xpush1.message('event01', function (data){
-  console.log('event01 : ' + data.from + '-' + data.comments);
+	console.log('event01 : ' + data.from + '-' + data.comments);
 });
 
 xpush1.message('event02', function (data){
-  console.log('event02 : ' + data.from + '-' + data.comments);
+	console.log('event02 : ' + data.from + '-' + data.comments);
 });
 
 xpush1.message('event03', function (data){
-  console.log('event03 : ' + data.from + '-' + data.comments);
+	console.log('event03 : ' + data.from + '-' + data.comments);
 });
 
 var xpush2 = new XPush('http://channel-a.stalk.io:8000', 'ABCDE_APP', 'CH002');
 xpush2.join('SESSION_UNIQUE_ID_2', function (data) {
-  xpush1.send('event02', {from:'xpush2', comments:'somthing from the other channel.'});
+	xpush1.send('event02', {from:'xpush2', comments:'somthing from the other channel.'});
 });
 */
 </script>
-<body>
+
+
 
 </body>
 </html>
