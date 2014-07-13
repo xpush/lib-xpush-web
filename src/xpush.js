@@ -46,33 +46,45 @@
     ChannelServer : '/cs', // /cs/:channel ( header: appKey )
   	SIGNUP : '/user/register',
     LOGIN : '/auth',
-    Channel : '/channel', 
+    Channel : '/channel',
     Signout : '/signout',
     Message : '/msg',
     NODE : '/node'
   };
 
-  XPush.prototype.signup = function(userId, password, cb){
+  XPush.prototype.signup = function(userId, password, deviceId, cb){
     var self = this;
-    var sendData = {A:self.appId , U: userId, PW: password, D: 'WEB'};
+    if(typeof(deviceId) == 'function' && !cb){
+      deviceId = 'WEB';
+      cb = deviceId;
+    }
+
+    var sendData = {A:self.appId , U: userId, PW: password, D: deviceId};
     self.ajax( XPush.Context.SIGNUP , 'POST', sendData, cb);
   }
 
-  XPush.prototype.login = function(userId, password, cbLogin){
+  XPush.prototype.login = function(userId, password, deviceId, cbLogin){
     var self = this;
+
+    if(typeof(deviceId) == 'function' && !cbLogin){
+      deviceId = 'WEB';
+      cbLogin = deviceId;
+    }
+
     self.userId = userId;
-    var sendData = {A: self.appId, U: userId, PW: password, D: 'WEB'};
+    self.deviceId = deviceId;
+    var sendData = {A: self.appId, U: userId, PW: password, D: deviceId};
     self.ajax( XPush.Context.LOGIN , 'POST', sendData, function(err, result){
       if(result.status == 'ok'){
         // result.result = {"token":"HS6pNwzBoK","server":"215","serverUrl":"http://www.notdol.com:9990"};
         var c = self._sessionConnection = new Connection(self, SESSION, result.result);
-  	
+
     		c.connect(function(){
     			console.log("xpush : login end", self.userId);
     			self.initSessionSocket(self._sessionConnection._socket, cbLogin);
     		});
       }else{
-        if(cbLogin) cbLogin(err);
+        if(cbLogin) cbLogin(result.message);
       	alert('xpush : login error'+ result.message);
       }
     });
@@ -123,7 +135,7 @@
 
   XPush.prototype.getChannels = function(cb){
     var self = this;
-    console.log("xpush : getChannels ",self.userId);    
+    console.log("xpush : getChannels ",self.userId);
     self.sEmit('channel-list',function(err, result){
       //app(A), channel(C), created(CD) , users(US)
       console.log("xpush : getChannels end ",result);
@@ -145,7 +157,7 @@
   XPush.prototype.getChannelsActive = function(data){ //data.key(option)
     var self = this;
     self.sEmit('channel-list-active',function(err, result){
-      //app, channel, created 
+      //app, channel, created
       cb(result);
     });
   }
@@ -173,6 +185,50 @@
   	self.sEmit('channel-exit', {C: chNm}, function(err, result){
         if(cb) cb(err,result);
   	});
+  };
+
+  // @TODO 파일 업로드 코딩 중.
+  XPush.prototype.uploadFile = function(channel, fileObject, cb){
+    var self = this;
+
+    var ch = self.getChannel(channel);
+    console.log(ch); // channel 이 없으면,, 아래 로직을 타도 안될 것 같음.
+    if(!ch){
+      self._channels[channel] = ch;
+      ch = self._makeChannel();
+      self.getChannelInfo(channel,function(err,data){
+        if(err){
+          console.log(" == node channel " ,err);
+        }else if ( data.status == 'ok'){
+          ch.setServerInfo(data.result); // 이건 callback 이 아니라 sync 하게 처리 해야할 듯 ?
+        }
+      });
+    }
+
+    var blobs = [];
+    var streams = [];
+
+    for(var i=0; i<fileObject.files.length; i++){
+      var file = fileObject.files[i];
+      var size = 0;
+      streams[i] = ss.createStream();
+      blobs[i] = ss.createBlobReadStream(file);
+
+      blobs[i].on('data', function(chunk) {
+        size += chunk.length;
+        // @TODO callback func
+        console.log(i+' - '+Math.floor(size / file.size * 100) + '%');
+      });
+
+      ch.upload(streams[i], file.name, function(result){
+        // @TODO callback func
+        console.log(i+' - '+result);
+      });
+      blobs[i].pipe(streams[i]);
+
+
+    }
+
   };
 
   XPush.prototype._makeChannel = function(chNm){
@@ -241,7 +297,7 @@
   };
 
   XPush.prototype.send = function(channel, name, data){
-    // 채널이 생성되어 있지 않으면 
+    // 채널이 생성되어 있지 않으면
     var self = this;
     var ch = self.getChannel(channel);
     if(!ch){
@@ -283,7 +339,7 @@
     groupId = groupId ? groupId : self.userId;
     self.sEmit('group-list',{groupId: groupId}, function(err,result){
       cb(err,result);
-    });    
+    });
   }
 
   XPush.prototype.addUserToGroup = function(groupId, userIds,cb){
@@ -292,9 +348,9 @@
     groupId = groupId ? groupId : self.userId;
     userIds = userIds ? userIds : [];
     self.sEmit('group-add',{groupId: groupId, userIds: userIds}, function(err,result){
-      //app, channel, created 
+      //app, channel, created
       cb(err,result);
-    });    
+    });
   }
 
   XPush.prototype.removeUserFromGroup = function(groupId, userId, cb){
@@ -304,7 +360,7 @@
 
     self.sEmit('group-remove',{groupId: groupId, userId: userId}, function(err, result){
         cb(err,result);
-    });    
+    });
   };
 
   XPush.prototype.getGroups = function(){
@@ -312,7 +368,7 @@
   }
 
   XPush.prototype.signout = function(cb){
-    //session end 
+    //session end
     var self = this;
     var sendData = { };
     self.ajax( XPush.Context.Signout , 'POST', sendData, cb);
@@ -327,7 +383,7 @@
       switch(data.event){
         case 'NOTIFICATION':
           var ch = self.getChannel(data.channel);
-          if(!ch){            
+          if(!ch){
             ch = self._makeChannel(data.channel);
 
             self.getChannelInfo(data.channel,function(err,data){
@@ -356,7 +412,7 @@
 
       }
 
-    }); 
+    });
     socket.on('channel',function(data){
       console.log('xpush : session receive ', 'channel', data, self.userId);
 
@@ -365,11 +421,11 @@
       // event: update , app,channel,server,count
         break;
 
-        case 'REMOVE' : 
+        case 'REMOVE' :
       // event: remove , app,channel
         break;
       };
-    }); 
+    });
     socket.on('connected',function(){
       console.log('xpush : session receive ', CHANNEL, arguments, self.userId);
     });
@@ -385,14 +441,13 @@
           for(var i = data.length-1 ; i >= 0; i--){
 
             data[i].MG.DT = JSON.parse(data[i].MG.DT);
-            console.log(RMKEY,  data[i].MG.DT.C, data[i].NM,  data[i].MG.DT);
             self.receiveMessageStack.unshift([RMKEY,  data[i].MG.DT.C, data[i].NM,  data[i].MG.DT]);
             //self.emit(RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data);
           }
           self.isExistUnread = false;
           while(self.receiveMessageStack.length > 0 ){
             var t = self.receiveMessageStack.shift();
-            self.emit.apply(self, t );  
+            self.emit.apply(self, t );
           }
         }else{
           self.isExistUnread = false;
@@ -456,7 +511,7 @@
     /*
     if(event == RMKEY ){
       self.getUnreadMessage(function(err, data){
-        if(data && data.length > 0 ) 
+        if(data && data.length > 0 )
         for(var i = data.length ; i > 0; i--){
           data[i].message.data = JSON.parse(data[i].message.data);
           self.receiveMessageStack.shift([RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data]);
@@ -464,11 +519,11 @@
         }
         self.isExistUnread = false;
         for(var i = 0 ; i < self.receiveMessageStack.length;i++){
-          self.emit.apply(self, self.receiveMessageStack[i]);  
+          self.emit.apply(self, self.receiveMessageStack[i]);
         }
-      });      
+      });
     };
-    */ 
+    */
     /*
     if(event == RMKEY ){
       self.getUnreadMessage(function(err, data){
@@ -477,7 +532,7 @@
         self._events[event] = self._events[event] || [];
         self._events[event].push(fct);
 
-        if(data && data.length > 0 ) 
+        if(data && data.length > 0 )
         for(var i = data.length ; i > 0; i--){
           data[i].message.data = JSON.parse(data[i].message.data);
           receiveMessageStack.shift([RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data]);
@@ -503,14 +558,14 @@
   XPush.prototype.emit = function(event){
     var self = this;
     if(self.isExistUnread) {
-      self.receiveMessageStack.push(arguments);  
+      self.receiveMessageStack.push(arguments);
     }else{
       self._events = self._events || {};
       if( event in self._events === false  )  return;
       for(var i = 0; i < self._events[event].length; i++){
         console.log("xpush : test ",arguments);
         self._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
-      };      
+      };
     }
   };
 
@@ -539,12 +594,12 @@
   Connection.prototype.checkConnectionTimeout = function(b){
     var self = this;
     if(self.checkTimer) clearTimeout(self.checkTimer);
-  
+
     if(b){
       self.checkTimer = setTimeout(function(){
         self._socket.disconnect();
       },timeout);
-    }    
+    }
   }
 
   Connection.prototype.setServerInfo = function(info,cb){
@@ -555,8 +610,8 @@
   	self.chNm = info.channel;
   	self.connect(function(){
       console.log("xpush : setServerInfo end ", arguments,self._xpush.userId, self.chNm);
-      //self.connectionCallback();     
-      if(cb) cb(); 
+      //self.connectionCallback();
+      if(cb) cb();
   	});
   };
 
@@ -565,7 +620,7 @@
       var query =
         'A='+self._xpush.appId+'&'+
         'U='+self._xpush.userId+'&'+
-        'D=WEB'+'&'+
+        'D='+self._xpush.deviceId+'&'+
         'TK='+self._server.token;
         //'mode=CHANNEL_ONLY';
 
@@ -574,7 +629,7 @@
         'A='+self._xpush.appId+'&'+
         'C='+self.chNm+'&'+
         'U='+self._xpush.userId+'&'+
-        'D=WEB'+'&'+
+        'D='+self._xpush.deviceId+'&'+
         'S='+self.info.server.name;
     }
 
@@ -618,6 +673,13 @@
       self.messageStack.push({NM: name, DT: data});
     }  	
   }
+
+  Connection.prototype.upload = function(stream, filename, cb){
+    var self = this;
+    if(self._socket.connected){
+      ss(self._socket).emit('file-upload', stream, {name: filename}, cb);
+    }
+  };
 
   Connection.prototype.on = function(event, fct){
    var self = this;
@@ -666,18 +728,18 @@
 
   G.init( applicationKey );
 
- - Application의 모든 사용자 
+ - Application의 모든 사용자
   G.getUserList();
 
- - 내가 채널 정보 생성 
+ - 내가 채널 정보 생성
   var CH01 = G.createChannel('channel01', [userId, userId2, userId3]);
-  and 
+  and
   var CH01 = G.getChannel('channel01');
 
- - 채널에서 나가기 
+ - 채널에서 나가기
   CH01.leaved();
- 
- - 채널의 사용자 리스트 
+
+ - 채널의 사용자 리스트
   var memberIds = CH01.getUserList();
 
  - 채널에서 보내는 메시지 받기
@@ -685,9 +747,9 @@
     // data
   });
 
- - 채널에서 보내는 모든 메시지 받기 
+ - 채널에서 보내는 모든 메시지 받기
   CH01.onMsg(function(data){
-    // 모든 key 들을 전부 받는 이벤트  
+    // 모든 key 들을 전부 받는 이벤트
   });
 
  - 채널에서 사용자가 탈퇴했음
@@ -705,14 +767,14 @@
 
   });
 
- - 채널에 메시지 전송하기 
+ - 채널에 메시지 전송하기
   CH01.send('key09',{ key1: 'value01', key2: 'value02'});
 
- - 채널이 생성되면서 내가 들어왔음 
+ - 채널이 생성되면서 내가 들어왔음
   G.on('channelCreated',function(chObj, data){
-    // data {chName: 'string', chMember : [] } 
-    chObj.onMsg('...' , function(data){...}); 
-    or  
+    // data {chName: 'string', chMember : [] }
+    chObj.onMsg('...' , function(data){...});
+    or
     var CH02 = G.getChannel(data.chName);
   });
 
@@ -723,4 +785,3 @@
   5. listen 하기 위한 Message Socket 은 최근 5초간(설정) 연속적인 메시지가 가장 많은 곳으로 다시 연결한다??
 */
 })();
-
