@@ -72,6 +72,8 @@ async.series([
 					assert.ok(result, "retrieve channel complete!");
 					assert.equal(result.length , 1 , 'channel create one!');
 					assert.equal(result[0].channel , channel.chNm , 'channel name is right!');
+					console.log("========= notdol");
+					console.log(result[0]);
 					CHANNEL.push(channel.chNm);
 					QUnit.start(); cb(null);
 				});

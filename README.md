@@ -24,9 +24,9 @@ Data send
 ```html
 <script>
   var xpush1 = new XPush('http://local.host:8000', 'APP_ID');
-  xpush1.login('userid1','password',function(){
-      xpush1.send('channelname','name',data);
-  });
+  xpush1.login('userid1','password',function(){ 
+      xpush1.send('channelname','name',data); 
+  }); 
 </script>
 ```
 

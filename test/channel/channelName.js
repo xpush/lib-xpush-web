@@ -48,6 +48,9 @@ async.series([
 			window.xpush2.login(USERS[2],PASS[2],function(err){
 				assert.equal(err, undefined, "login failed!");
 				QUnit.start();
+				window.xpush2.on('message', function(data){
+					//console.log("==== message received : ", data);
+				});
 			});
 	        cb(null);
 		});
@@ -65,7 +68,7 @@ async.series([
     function(cb){
 		QUnit.asyncTest("create channel",function(assert){
 			expect(8);
-			var channel = window.xpush.createChannel([USERS[1],USERS[2]],'channelname', function(err){
+			var channel = window.xpush.createChannel([USERS[1],USERS[2]],'channelname3', function(err){
 				assert.equal(err, null, "channel connect complete!");
 				xpush.getChannels(function(err,result){
 					assert.equal(err, null, "channel connect complete!");
@@ -73,11 +76,11 @@ async.series([
 					assert.equal(result.length , 1 , 'channel create one!');
 					assert.equal(result[0].channel , channel.chNm , 'channel name is right!');
 					CHANNEL.push(channel.chNm);
+					console.log(channel);
 					channel.send('message',{data:'data'});
 					checkComplete();
 				});
 			});
-
 			xpush1.on('newChannel',function(channel){
 				assert.ok(channel, "new channel event recived!");
 				checkComplete();
@@ -90,6 +93,7 @@ async.series([
 			var cnt = 0 ;
 			var totalCnt = 3;
 			var checkComplete = function(){
+				console.log(cnt);
 				if(totalCnt <= ++cnt) {
 					QUnit.start(); cb(null);
 				}

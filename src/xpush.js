@@ -7,6 +7,10 @@
   var SESSION = 'session';
   var CHANNEL = 'channel';
 
+  var ST = {A:'app',C:'channel',U:'userId',US:'users',D:'deviceId',N:'notiId',S:'server'
+  ,MG:'message',NM:'name',PW:'password',GR:'groups',DT:'datas',MD:'mode',TS:'timestamp'
+  ,SS:'socketId',CD:'createDate',UD:'updateDate'};
+
   var socketOptions ={
   	transports: ['websocket']
   	,'force new connection': true
@@ -50,14 +54,14 @@
 
   XPush.prototype.signup = function(userId, password, cb){
     var self = this;
-    var sendData = {app:self.appId , userId: userId, password: password, deviceId: 'WEB'};
+    var sendData = {A:self.appId , U: userId, PW: password, D: 'WEB'};
     self.ajax( XPush.Context.SIGNUP , 'POST', sendData, cb);
   }
 
   XPush.prototype.login = function(userId, password, cbLogin){
     var self = this;
     self.userId = userId;
-    var sendData = {app: self.appId, userId: userId, password: password, deviceId: 'WEB'};
+    var sendData = {A: self.appId, U: userId, PW: password, D: 'WEB'};
     self.ajax( XPush.Context.LOGIN , 'POST', sendData, function(err, result){
       if(result.status == 'ok'){
         // result.result = {"token":"HS6pNwzBoK","server":"215","serverUrl":"http://www.notdol.com:9990"};
@@ -87,24 +91,28 @@
     var channelNm = channel;
     var oldChNm = channelNm;
     users.push(self.userId);
-    self.sEmit('channel-create',{channel: channel, users: users},function(err, result){
+    self.sEmit('channel-create',{C: channel, US: users},function(err, result){
       //_id: "53b039e6a2f41316d7046732"
       //app: "stalk-io"
       //channel: "b14qQ6wI"
       //created: "2014-06-29T16:08:06.684Z"i
       console.log("xpush : createChannel end", result);
-      channelNm = result.channel;
+  	  if(result.message) {
+  	  	alert(result.message); return;
+  	  }
+      channelNm = result.C;
       self.getChannelInfo(channelNm,function(err,data){
         //channel , seq, server.channel,name,url
-        if(err){
+        
+    		if(err){
           console.log(" == node channel " ,err);
         }else if ( data.status == 'ok'){
           newChannel.setServerInfo(data.result);
           //newChannel.chNm = channelNm;
           channels[channelNm] = newChannel;
-          if(oldChNm){
-            delete channels[oldChNm];
-          }
+          //if(oldChNm){
+          //  delete channels[oldChNm];
+          //}
           if(cb)cb(null, channelNm);
         }
       });
@@ -117,8 +125,19 @@
     var self = this;
     console.log("xpush : getChannels ",self.userId);    
     self.sEmit('channel-list',function(err, result){
-      //app, channel, created 
+      //app(A), channel(C), created(CD) , users(US)
       console.log("xpush : getChannels end ",result);
+      ['A','C','CD','US'].forEach(function(item){
+        UTILS.changeKey(result,item);
+      });
+      if(result.length > 0){
+        result.forEach(function(r){
+          ['D','N','U'].forEach(function(item){
+            UTILS.changeKey(r.users,item);
+          });          
+        });
+      };
+      console.log(result);
       cb(err,result);
     });
   };
@@ -144,14 +163,14 @@
 
   XPush.prototype.joinChannel = function(chNm, /*userId,*/ cb){
     var self = this;
-    self.sEmit('channel-join', {channel: chNm, userId: /*userId*/{} }, function(err, result){
+    self.sEmit('channel-join', {C: chNm, U: /*userId*/{} }, function(err, result){
       if(cb) cb(err,result);
     });
   }
 
   XPush.prototype.exitChannel = function(chNm, cb){
   	var self = this;
-  	self.sEmit('channel-exit', {channel: chNm}, function(err, result){
+  	self.sEmit('channel-exit', {C: chNm}, function(err, result){
         if(cb) cb(err,result);
   	});
   };
@@ -244,7 +263,7 @@
     console.log("xpush : getUnreadMessage ",self.userId);
     self.sEmit('message-unread',function(err, result){
       //app, channel, created 
-      console.log("xpush : getUnreadMessage ", result);
+      console.log("xpush : getUnreadMessage end ", result);
       if(result && result.length > 0){
         result.sort(UTILS.messageTimeSort);
       }
@@ -302,7 +321,7 @@
   XPush.prototype.initSessionSocket = function(socket,cb){
     var self = this;
     socket.on('_event',function(data){
-      console.log('xpush : session receive ', '_event', data.channel,data.name,data.data, self.userId);
+      console.log('xpush : session receive ', '_event', data.C,data.NM,data.DT, self.userId);
       // data.event = NOTIFICATION
       // channel,name, timestamp, data= {}
       switch(data.event){
@@ -323,8 +342,8 @@
               self.emit('newChannel', ch);
             }
           }
-          ch.emit(data.name , data.data);
-          self.emit(RMKEY, data.channel, data.name, data.data);
+          ch.emit(data.NM , data.DT);
+          self.emit(RMKEY, data.C, data.NM, data.DT);
         break;
 
         case 'CONNECT' :
@@ -365,8 +384,9 @@
         if(data && data.length > 0 ){
           for(var i = data.length-1 ; i >= 0; i--){
 
-            data[i].message.data = JSON.parse(data[i].message.data);            
-            self.receiveMessageStack.unshift([RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data]);
+            data[i].MG.DT = JSON.parse(data[i].MG.DT);
+            console.log(RMKEY,  data[i].MG.DT.C, data[i].NM,  data[i].MG.DT);
+            self.receiveMessageStack.unshift([RMKEY,  data[i].MG.DT.C, data[i].NM,  data[i].MG.DT]);
             //self.emit(RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data);
           }
           self.isExistUnread = false;
@@ -488,7 +508,7 @@
       self._events = self._events || {};
       if( event in self._events === false  )  return;
       for(var i = 0; i < self._events[event].length; i++){
-        //console.log("xpush : test ",arguments);
+        console.log("xpush : test ",arguments);
         self._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
       };      
     }
@@ -543,19 +563,19 @@
   Connection.prototype.connect = function(cbConnect){
     var self = this;
       var query =
-        'app='+self._xpush.appId+'&'+
-        'userId='+self._xpush.userId+'&'+
-        'deviceId=WEB'+'&'+
-        'token='+self._server.token;
+        'A='+self._xpush.appId+'&'+
+        'U='+self._xpush.userId+'&'+
+        'D=WEB'+'&'+
+        'TK='+self._server.token;
         //'mode=CHANNEL_ONLY';
 
     if(self._type == CHANNEL){
       query = 
-        'app='+self._xpush.appId+'&'+
-        'channel='+self.chNm+'&'+
-        'userId='+self._xpush.userId+'&'+
-        'deviceId=WEB'+'&'+
-        'server='+self.info.server.name;
+        'A='+self._xpush.appId+'&'+
+        'C='+self.chNm+'&'+
+        'U='+self._xpush.userId+'&'+
+        'D=WEB'+'&'+
+        'S='+self.info.server.name;
     }
 
     self._socket = io.connect(self._server.serverUrl+'/'+self._type+'?'+query, socketOptions);
@@ -564,7 +584,7 @@
     self._socket.on('connect', function(){
       while(self.messageStack.length > 0 ){
         var t = self.messageStack.shift();
-        self.send(t.name, t.data);
+        self.send(t.NM, t.DT);
       };
 
       if(!self.isFirtConnect) return;
@@ -593,9 +613,9 @@
   Connection.prototype.send = function(name, data,cb){
   	var self = this;
     if(self._socket.connected){
-      self._socket.emit('send', {name: name , data: data});
+      self._socket.emit('send', {NM: name , DT: data});
     }else{
-      self.messageStack.push({name: name, data: data});
+      self.messageStack.push({NM: name, DT: data});
     }  	
   }
 
@@ -628,6 +648,17 @@
     return a.created > b.created;
   };
 
+  UTILS.changeKey = function(data, key){
+    if(data instanceof Array){
+      data.forEach(function(d){
+        d[ ST[key] ] = d[key];
+        delete d[key];            
+      })
+    }else{
+      data[ ST[key] ] = data[key];
+      delete data[key];        
+    }
+  }
   //window.XPush = new XPush();
   window.XPush = XPush;
 /*

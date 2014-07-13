@@ -96,6 +96,7 @@ async.series([
 			});
 
 			xpush1.on('message',function(ch,name,data){
+				console.log("===== notdol",arguments);
 				assert.equal(ch, channelName, "channel name is right1!");
 				assert.equal(name, sendName, "send name is right1!");
 				//assert.equal(sendData, data, "send data is right1!");	

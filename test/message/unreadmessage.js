@@ -88,7 +88,6 @@ async.series([
 
 			var channel = CHANNEL[0];
 			var channelName = channel.chNm;
-
 			//var sendData = {"a":"a"};
 			var sendName = 'message';
 
@@ -117,6 +116,7 @@ async.series([
 			};
 			var cnt = 0 ;
 			var checkComplete = function(){
+				console.log(cnt);
 				if(MAX / 2 <= cnt) {
 					QUnit.start(); cb(null);
 				}
