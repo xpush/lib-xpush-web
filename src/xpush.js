@@ -103,7 +103,7 @@
     var channelNm = channel;
     var oldChNm = channelNm;
     users.push(self.userId);
-    self.sEmit('channel-create',{C: channel, US: users},function(err, result){
+    self.sEmit('channel-create',{C: channel, U: users},function(err, result){
       //_id: "53b039e6a2f41316d7046732"
       //app: "stalk-io"
       //channel: "b14qQ6wI"
