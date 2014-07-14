@@ -110,10 +110,10 @@
       //created: "2014-06-29T16:08:06.684Z"i
       console.log("xpush : createChannel end", err);
       console.log("xpush : createChannel end", result);
-  	  if(result.message) {
-  	  	alert(result.message); return;
+  	  if(err) {
+  	  	if(cb)cb(err, result);
   	  }
-      channelNm = result.C;
+      channelNm = result.C || channelNm;
       self.getChannelInfo(channelNm,function(err,data){
         //channel , seq, server.channel,name,url
 
@@ -188,7 +188,7 @@
   	});
   };
 
-  XPush.prototype.uploadFile = function(channel, fileObject, fnPrg, fnCallback){
+  XPush.prototype.uploadFile = function(channel, inputObj, fnPrg, fnCallback){
     var self = this;
 
     var ch = self.getChannel(channel);
@@ -207,8 +207,8 @@
     var blobs = [];
     var streams = [];
 
-    for(var i=0; i<fileObject.files.length; i++){
-      var file = fileObject.files[i];
+    for(var i=0; i<inputObj.file.files.length; i++){
+      var file = inputObj.file.files[i];
       var size = 0;
       streams[i] = ss.createStream();
       blobs[i] = ss.createBlobReadStream(file);
@@ -218,13 +218,26 @@
         fnPrg(Math.floor(size / file.size * 100), i);
       });
 
-      ch.upload(streams[i], file.name, function(result){
+      var _data = {};
+      if(inputObj.overwrite) _data.name = file.name;
+      if(inputObj.type) _data.type = inputObj.type;
+
+      ch.upload(streams[i], _data, function(result){
         fnCallback(result, i);
       });
       blobs[i].pipe(streams[i]);
 
     }
 
+  };
+
+  XPush.prototype.fileUrl = function(channel, fileName, fnCallback){
+    var self = this;
+
+    // -------  /download/:app/:channel/:userId/:socketId/:filename
+
+    var ch = self.getChannel(channel);
+    console.log(ch);
   };
 
   XPush.prototype._makeChannel = function(chNm){
@@ -484,11 +497,16 @@
     var self = this;
 
     var returnFunction = function(result){
+
       if(result.status == 'ok'){
         cb(null, result.result);
       }else{
-        console.error("xpush : emit error ", key,result.message);
-        cb(result.message);
+        if(result.status.indexOf('WARN') == 0){
+          console.warn("xpush : ", key, result.status, result.message);
+        }else{
+          console.error("xpush : ", key, result.status, result.message);
+        }
+        cb(result.status, result.message);
       }
     };
 
@@ -672,10 +690,10 @@
     }
   };
 
-  Connection.prototype.upload = function(stream, filename, cb){
+  Connection.prototype.upload = function(stream, data, cb){
     var self = this;
     if(self._socket.connected){
-      ss(self._socket).emit('file-upload', stream, {name: filename}, cb);
+      ss(self._socket).emit('file-upload', stream, data, cb);
     }
   };
 
