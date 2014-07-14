@@ -11,15 +11,16 @@ var xpush3 = new XPush(HOST,APPID);
 
 var USERS = ['notdol110','notdol111','notdol112','notdol113'];
 var PASS = ['win1234','win1234','win1234','win1234'];
+var DEVICEID = 'testunit';
 var CHANNEL = [];
 var MESSAGES = [];
 var MSG_CNT = 10;
+var SENDNAME = 'message';
 
 QUnit.module("init",{
 	setup : function(assert){
 	}
 })
-
 async.series([
     function(cb){
 		QUnit.test("init xpush",function(assert){
@@ -48,9 +49,9 @@ async.series([
 		});
     },
     function(cb){
-		QUnit.asyncTest("login xpush3",function(assert){
+		QUnit.asyncTest("login xpush3", function(assert){
 			expect(1);
-			window.xpush2.login(USERS[2],PASS[2],function(err){
+			window.xpush2.login(USERS[2],PASS[2], function(err){
 				assert.equal(err, undefined, "login failed!");
 				QUnit.start();
 			});
@@ -58,15 +59,17 @@ async.series([
 		});
     },
     function(cb){
-		QUnit.asyncTest("login xpush4",function(assert){
+		QUnit.asyncTest("login xpush4", function(assert){
 			expect(1);
-			window.xpush3.login(USERS[3],PASS[3],function(err){
+			window.xpush3.login(USERS[3],PASS[3], function(err){
 				assert.equal(err, undefined, "login failed!");
 				QUnit.start();
 			});
 	        cb(null);
 		});
     },
+/*
+
     function(cb){
 		QUnit.asyncTest("create channel",function(assert){
 			expect(6);
@@ -84,7 +87,6 @@ async.series([
 			assert.ok(channel,' channel object is created!');
 		});
     },
-
     function(cb){
 		QUnit.asyncTest("send Message & receive Message 1 ",function(assert){
 			var MAX = ( (MSG_CNT) * 2 * 3 ) * 2;
@@ -144,5 +146,39 @@ async.series([
 				}
 			}
 		});
-    }
+    },
+    */
+    function(cb){
+		QUnit.asyncTest("send Message & receive Message 2 ",function(assert){
+			//var MAX = ( (MSG_CNT) * 2 * 3 ) * 2;
+			expect(4);
+			var channelName = 'TEST_CH01';
+			xpush2.on('message',function(ch,name,data){
+				assert.equal(ch, channelName, "channel name is right1!");
+				assert.equal(name, SENDNAME , "send name is right1!");
+				cnt++; checkComplete();
+			});
+
+			xpush3.on('message',function(ch,name,data){
+				assert.equal(ch, channelName, "channel name is right2!");
+				assert.equal(name, SENDNAME, "send name is right2!");
+				cnt++; checkComplete();
+			});
+			xpush.createChannel(['notdol112', 'notdol113'], channelName, function(err, name){
+				xpush.send( channelName, 'message',{data:'asdf'});
+			});
+
+
+			var cnt = 0 ;
+			var checkComplete = function(){
+				console.log(cnt);
+				if(2 <= cnt) {
+					QUnit.start(); cb(null);
+				}
+			}
+
+
+		});
+
+	}
 ]);

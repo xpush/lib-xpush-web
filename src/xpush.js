@@ -55,8 +55,8 @@
   XPush.prototype.signup = function(userId, password, deviceId, cb){
     var self = this;
     if(typeof(deviceId) == 'function' && !cb){
-      deviceId = 'WEB';
       cb = deviceId;
+      deviceId = 'WEB';
     }
 
     var sendData = {A:self.appId , U: userId, PW: password, D: deviceId};
@@ -67,8 +67,8 @@
     var self = this;
 
     if(typeof(deviceId) == 'function' && !cbLogin){
-      deviceId = 'WEB';
       cbLogin = deviceId;
+      deviceId = 'WEB';
     }
 
     self.userId = userId;
@@ -303,6 +303,7 @@
     if(!ch){
       self._channels[channel] = ch;
       ch = self._makeChannel();
+      alert(channel);
       self.getChannelInfo(channel,function(err,data){
         if(err){
           console.log(" == node channel " ,err);
@@ -382,11 +383,12 @@
       // channel,name, timestamp, data= {}
       switch(data.event){
         case 'NOTIFICATION':
-          var ch = self.getChannel(data.channel);
+          var ch = self.getChannel(data.C);
           if(!ch){
-            ch = self._makeChannel(data.channel);
+            ch = self._makeChannel(data.C);
 
-            self.getChannelInfo(data.channel,function(err,data){
+            self.getChannelInfo(data.C,function(err,data){
+			
               if(err){
                 console.log(" == node channel " ,err);
               }else if ( data.status == 'ok'){
@@ -432,7 +434,7 @@
 
     self.getChannels(function(err,data){
       self.channelNameList = data;
-      cb();
+      if(cb) cb();
     });
 
     //socket.on('connect',function(){
