@@ -115,7 +115,7 @@
       channelNm = result.C;
       self.getChannelInfo(channelNm,function(err,data){
         //channel , seq, server.channel,name,url
-        
+
     		if(err){
           console.log(" == node channel " ,err);
         }else if ( data.status == 'ok'){
@@ -146,7 +146,7 @@
         result.forEach(function(r){
           ['D','N','U'].forEach(function(item){
             UTILS.changeKey(r.users,item);
-          });          
+          });
         });
       };
       console.log(result);
@@ -187,12 +187,10 @@
   	});
   };
 
-  // @TODO 파일 업로드 코딩 중.
-  XPush.prototype.uploadFile = function(channel, fileObject, cb){
+  XPush.prototype.uploadFile = function(channel, fileObject, fnPrg, fnCallback){
     var self = this;
 
     var ch = self.getChannel(channel);
-    console.log(ch); // channel 이 없으면,, 아래 로직을 타도 안될 것 같음.
     if(!ch){
       self._channels[channel] = ch;
       ch = self._makeChannel();
@@ -200,7 +198,7 @@
         if(err){
           console.log(" == node channel " ,err);
         }else if ( data.status == 'ok'){
-          ch.setServerInfo(data.result); // 이건 callback 이 아니라 sync 하게 처리 해야할 듯 ?
+          ch.setServerInfo(data.result); // @ TODO 이건 callback 이 아니라 sync 하게 처리 해야 할 까?
         }
       });
     }
@@ -216,16 +214,13 @@
 
       blobs[i].on('data', function(chunk) {
         size += chunk.length;
-        // @TODO callback func
-        console.log(i+' - '+Math.floor(size / file.size * 100) + '%');
+        fnPrg(Math.floor(size / file.size * 100), i);
       });
 
       ch.upload(streams[i], file.name, function(result){
-        // @TODO callback func
-        console.log(i+' - '+result);
+        fnCallback(result, i);
       });
       blobs[i].pipe(streams[i]);
-
 
     }
 
@@ -319,7 +314,7 @@
     var self = this;
     console.log("xpush : getUnreadMessage ",self.userId);
     self.sEmit('message-unread',function(err, result){
-      //app, channel, created 
+      //app, channel, created
       console.log("xpush : getUnreadMessage end ", result);
       if(result && result.length > 0){
         result.sort(UTILS.messageTimeSort);
@@ -627,7 +622,7 @@
         //'mode=CHANNEL_ONLY';
 
     if(self._type == CHANNEL){
-      query = 
+      query =
         'A='+self._xpush.appId+'&'+
         'C='+self.chNm+'&'+
         'U='+self._xpush.userId+'&'+
@@ -673,7 +668,7 @@
       self._socket.emit('send', {NM: name , DT: data});
     }else{
       self.messageStack.push({NM: name, DT: data});
-    }  	
+    }
   }
 
   Connection.prototype.upload = function(stream, filename, cb){
@@ -716,11 +711,11 @@
     if(data instanceof Array){
       data.forEach(function(d){
         d[ ST[key] ] = d[key];
-        delete d[key];            
+        delete d[key];
       })
     }else{
       data[ ST[key] ] = data[key];
-      delete data[key];        
+      delete data[key];
     }
   }
   //window.XPush = new XPush();
