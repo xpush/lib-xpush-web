@@ -19,8 +19,8 @@
   var RMKEY = 'message';
 
   var XPush = function(host, appId){
-    if(!host){alert('params(1) must have hostname'); return;};
-    if(!appId){alert('params(2) must have appId'); return;};
+    if(!host){alert('params(1) must have hostname'); return;}
+    if(!appId){alert('params(2) must have appId'); return;}
     var self = this;
     self.appId = appId;             // applicationKey
     self._channels = {};      // channel List
@@ -61,7 +61,7 @@
 
     var sendData = {A:self.appId , U: userId, PW: password, D: deviceId};
     self.ajax( XPush.Context.SIGNUP , 'POST', sendData, cb);
-  }
+  };
 
   XPush.prototype.login = function(userId, password, deviceId, cbLogin){
     var self = this;
@@ -88,7 +88,7 @@
       	alert('xpush : login error'+ result.message);
       }
     });
-  }
+  };
 
   // params.channel(option), params.users
   XPush.prototype.createChannel = function(users, channel, cb){
@@ -101,13 +101,14 @@
     console.log("xpush : createChannel", users,channel);
     var newChannel;
     var channelNm = channel;
-    var oldChNm = channelNm;
+    //var oldChNm = channelNm;
     users.push(self.userId);
     self.sEmit('channel-create',{C: channel, U: users},function(err, result){
       //_id: "53b039e6a2f41316d7046732"
       //app: "stalk-io"
       //channel: "b14qQ6wI"
       //created: "2014-06-29T16:08:06.684Z"i
+      console.log("xpush : createChannel end", err);
       console.log("xpush : createChannel end", result);
   	  if(result.message) {
   	  	alert(result.message); return;
@@ -131,7 +132,7 @@
     });
     newChannel = self._makeChannel(channelNm);
     return newChannel;
-  }
+  };
 
   XPush.prototype.getChannels = function(cb){
     var self = this;
@@ -148,19 +149,19 @@
             UTILS.changeKey(r.users,item);
           });
         });
-      };
+      }
       console.log(result);
       cb(err,result);
     });
   };
 
-  XPush.prototype.getChannelsActive = function(data){ //data.key(option)
+  XPush.prototype.getChannelsActive = function(data, cb){ //data.key(option)
     var self = this;
     self.sEmit('channel-list-active',function(err, result){
       //app, channel, created
       cb(result);
     });
-  }
+  };
 
   XPush.prototype.getChannel = function(chNm){
     var self = this;
@@ -168,7 +169,7 @@
 
     for(var k in channels){
       if(k == chNm) return channels[k];
-    };
+    }
 
     return undefined;
   };
@@ -178,7 +179,7 @@
     self.sEmit('channel-join', {C: chNm, U: /*userId*/{} }, function(err, result){
       if(cb) cb(err,result);
     });
-  }
+  };
 
   XPush.prototype.exitChannel = function(chNm, cb){
   	var self = this;
@@ -242,7 +243,7 @@
     var self = this;
     if(self._channels.length >= self.maxConnection){
       self._deleteChannel(self._channels[self._channels.length-1]);
-    };
+    }
     /*
     if(ch){
       if(self._channels[0] != ch){
@@ -275,7 +276,7 @@
   		}
   	}
   	return false;
-  }
+  };
 
   //params.key, value
   XPush.prototype.getUserList = function(params,  cb){
@@ -336,7 +337,7 @@
     self.sEmit('group-list',{groupId: groupId}, function(err,result){
       cb(err,result);
     });
-  }
+  };
 
   XPush.prototype.addUserToGroup = function(groupId, userIds,cb){
     var self = this;
@@ -347,7 +348,7 @@
       //app, channel, created
       cb(err,result);
     });
-  }
+  };
 
   XPush.prototype.removeUserFromGroup = function(groupId, userId, cb){
     var self = this;
@@ -361,7 +362,7 @@
 
   XPush.prototype.getGroups = function(){
     // not defined yet
-  }
+  };
 
   XPush.prototype.signout = function(cb){
     //session end
@@ -383,7 +384,7 @@
             ch = self._makeChannel(data.C);
 
             self.getChannelInfo(data.C,function(err,data){
-			
+
               if(err){
                 console.log(" == node channel " ,err);
               }else if ( data.status == 'ok'){
@@ -421,7 +422,7 @@
         case 'REMOVE' :
       // event: remove , app,channel
         break;
-      };
+      }
     });
     socket.on('connected',function(){
       console.log('xpush : session receive ', CHANNEL, arguments, self.userId);
@@ -455,12 +456,12 @@
     socket.on('disconnect',function(){
       var self = this;
       self.isExistUnread = true;
-    })
-  }
+    });
+  };
 
   XPush.prototype.ajax = function( context, type, sendData , cb){
     var self = this;
-    var sendData = sendData || {};
+    sendData = sendData || {};
     console.log("xpush : ajax ", self.hostname+context,type,sendData);
     var ajax = $.ajax({
       url : self.hostname+context,
@@ -477,7 +478,7 @@
       cb(new Error(),{});
     });
     return ajax;
-  }
+  };
 
   XPush.prototype.sEmit = function(key, params, cb){
     var self = this;
@@ -489,7 +490,7 @@
         console.error("xpush : emit error ", key,result.message);
         cb(result.message);
       }
-    }
+    };
 
     if( typeof(arguments[1]) == 'function' ){
       cb = params;
@@ -562,7 +563,7 @@
       for(var i = 0; i < self._events[event].length; i++){
         console.log("xpush : test ",arguments);
         self._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
-      };
+      }
     }
   };
 
@@ -595,9 +596,9 @@
     if(b){
       self.checkTimer = setTimeout(function(){
         self._socket.disconnect();
-      },timeout);
+      }, self.timeout);
     }
-  }
+  };
 
   Connection.prototype.setServerInfo = function(info,cb){
     console.log("xpush : setServerInfo ", info);
@@ -637,7 +638,7 @@
       while(self.messageStack.length > 0 ){
         var t = self.messageStack.shift();
         self.send(t.NM, t.DT);
-      };
+      }
 
       if(!self.isFirtConnect) return;
       self.isFirtConnect = false;
@@ -657,7 +658,7 @@
   };
 
   Connection.prototype.disconnect = function(){
-    console.log("xpush : socketdisconnect ", self.chNm, self._xpush.userId);
+    console.log("xpush : socketdisconnect ", this.chNm, this._xpush.userId);
     this._socket.disconnect();
     //delete this._socket;
   };
@@ -669,7 +670,7 @@
     }else{
       self.messageStack.push({NM: name, DT: data});
     }
-  }
+  };
 
   Connection.prototype.upload = function(stream, filename, cb){
     var self = this;
@@ -696,7 +697,7 @@
     if( event in self._events === false  )  return;
     for(var i = 0; i < self._events[event].length; i++){
       self._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
-    };
+    }
   };
 
 
@@ -712,12 +713,12 @@
       data.forEach(function(d){
         d[ ST[key] ] = d[key];
         delete d[key];
-      })
+      });
     }else{
       data[ ST[key] ] = data[key];
       delete data[key];
     }
-  }
+  };
   //window.XPush = new XPush();
   window.XPush = XPush;
 /*

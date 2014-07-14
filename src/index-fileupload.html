@@ -25,7 +25,8 @@ xpush.login('yohan','password', 'web', function(err){
 
 	console.log(err);
 
-	xpush.createChannel(['stkim', 'test1'], 'TEST_CH01', function(err, name){
+	xpush.createChannel(['yohan', 'james'], 'TEST_CH01', function(err, name){
+		console.log(err);
 
 	//	xpush.send('TEST_CH01', 'AAAA',{data:'asdf'});
 
