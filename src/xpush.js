@@ -231,13 +231,20 @@
 
   };
 
-  XPush.prototype.fileUrl = function(channel, fileName, fnCallback){
+  XPush.prototype.getFileUrl = function(channel, fileName){
+
     var self = this;
-
-    // -------  /download/:app/:channel/:userId/:socketId/:filename
-
     var ch = self.getChannel(channel);
-    console.log(ch);
+
+    return
+      ch.info.server.url +
+      '/download/' +
+      ch._xpush.appId +
+      '/'+ch.info.channel +
+      '/'+ch._xpush.userId +
+      '/'+ch._socket.io.engine.id +
+      '/'+fileName;
+
   };
 
   XPush.prototype._makeChannel = function(chNm){
