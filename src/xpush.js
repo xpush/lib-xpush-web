@@ -81,7 +81,8 @@
 
     		c.connect(function(){
     			console.log("xpush : login end", self.userId);
-    			self.initSessionSocket(self._sessionConnection._socket, cbLogin);
+    			//self.initSessionSocket(self._sessionConnection._socket, cbLogin);
+          if(cbLogin) cbLogin(result.message); // @ TODO from yohan.
     		});
       }else{
         if(cbLogin) cbLogin(result.message);
