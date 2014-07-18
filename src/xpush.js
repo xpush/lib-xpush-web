@@ -82,7 +82,7 @@
     		c.connect(function(){
     			console.log("xpush : login end", self.userId);
     			//self.initSessionSocket(self._sessionConnection._socket, cbLogin);
-          if(cbLogin) cbLogin(result.message); // @ TODO from yohan.
+          if(cbLogin) cbLogin(result.message, result.result); // @ TODO from yohan.
     		});
       }else{
         if(cbLogin) cbLogin(result.message);
@@ -341,6 +341,8 @@
       if(result && result.length > 0){
         result.sort(UTILS.messageTimeSort);
       }
+      
+      self.sEmit('message-received');
       cb(err, result);
     });
   };
@@ -355,7 +357,7 @@
     var self = this;
 	if(typeof(arguments[0]) == 'function') {cb = arguments[0]; groupId = undefined;}
     groupId = groupId ? groupId : self.userId;
-    self.sEmit('group-list',{groupId: groupId}, function(err,result){
+    self.sEmit('group-list',{'GR': groupId}, function(err,result){
       cb(err,result);
     });
   };
@@ -365,7 +367,7 @@
   	if(typeof(arguments[1]) == 'function') {cb = arguments[1]; userIds = groupId; groupId = undefined;}
     groupId = groupId ? groupId : self.userId;
     userIds = userIds ? userIds : [];
-    self.sEmit('group-add',{groupId: groupId, userIds: userIds}, function(err,result){
+    self.sEmit('group-add',{'GR': groupId, userIds: userIds}, function(err,result){
       //app, channel, created
       cb(err,result);
     });
@@ -376,7 +378,7 @@
 	if(typeof(arguments[1]) == 'function') {cb = arguments[1]; userId = groupId; groupId = undefined;}
     groupId = groupId ? groupId : self.userId;
 
-    self.sEmit('group-remove',{groupId: groupId, userId: userId}, function(err, result){
+    self.sEmit('group-remove',{'GR': groupId, userId: userId}, function(err, result){
         cb(err,result);
     });
   };
