@@ -78,11 +78,12 @@
       if(result.status == 'ok'){
         // result.result = {"token":"HS6pNwzBoK","server":"215","serverUrl":"http://www.notdol.com:9990"};
         var c = self._sessionConnection = new Connection(self, SESSION, result.result);
-
+        
     		c.connect(function(){
     			console.log("xpush : login end", self.userId);
-    			//self.initSessionSocket(self._sessionConnection._socket, cbLogin);
-          if(cbLogin) cbLogin(result.message, result.result); // @ TODO from yohan.
+    			self.initSessionSocket(self._sessionConnection._socket, function(){
+            if(cbLogin) cbLogin(result.message, result.result); // @ TODO from yohan.
+          });
     		});
       }else{
         if(cbLogin) cbLogin(result.message);
@@ -92,21 +93,22 @@
   };
 
   // params.channel(option), params.users
-  XPush.prototype.createChannel = function(users, channel, cb){
+  XPush.prototype.createChannel = function(users, channel, datas, cb){
     var self = this;
     var channels = self._channels;
 
     if(typeof(channel) == 'function' && !cb){
       cb = channel; channel = undefined;
     }
-    console.log("xpush : createChannel", users,channel);
+
     var newChannel;
     var channelNm = channel;
     //var oldChNm = channelNm;
     if( users.indexOf(self.userId) < 0 ){
       users.push(self.userId);
     }
-    self.sEmit('channel-create',{C: channel, U: users},function(err, result){
+
+    self.sEmit('channel-create',{C: channel, U: users, DT:datas},function(err, result){
       //_id: "53b039e6a2f41316d7046732"
       //app: "stalk-io"
       //channel: "b14qQ6wI"
@@ -170,12 +172,18 @@
   XPush.prototype.getChannel = function(chNm){
     var self = this;
     var channels = self._channels;
-
     for(var k in channels){
       if(k == chNm) return channels[k];
     }
 
     return undefined;
+  };
+
+  XPush.prototype.getChannelData = function(chNm, cb){
+    var self = this;
+    self.sEmit('channel-get', {C: chNm, U: /*userId*/{} }, function(err, result){
+      if(cb) cb(err,result);
+    });
   };
 
   XPush.prototype.joinChannel = function(chNm, /*userId,*/ cb){
@@ -312,7 +320,7 @@
     var self = this;
     console.log("xpush : getUsertList ",params);
     self.sEmit('user-list' ,params,function(err,result){
-        if(cb) cb(result);
+        if(cb) cb(err, result);
     });
   };
 
@@ -369,7 +377,7 @@
   	if(typeof(arguments[1]) == 'function') {cb = arguments[1]; userIds = groupId; groupId = undefined;}
     groupId = groupId ? groupId : self.userId;
     userIds = userIds ? userIds : [];
-    self.sEmit('group-add',{'GR': groupId, userIds: userIds}, function(err,result){
+    self.sEmit('group-add',{'GR': groupId, 'U': userIds}, function(err,result){
       //app, channel, created
       cb(err,result);
     });
