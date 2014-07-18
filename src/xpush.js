@@ -103,7 +103,9 @@
     var newChannel;
     var channelNm = channel;
     //var oldChNm = channelNm;
-    users.push(self.userId);
+    if( users.indexOf(self.userId) < 0 ){
+      users.push(self.userId);
+    }
     self.sEmit('channel-create',{C: channel, U: users},function(err, result){
       //_id: "53b039e6a2f41316d7046732"
       //app: "stalk-io"
@@ -111,8 +113,10 @@
       //created: "2014-06-29T16:08:06.684Z"i
       console.log("xpush : createChannel end", err);
       console.log("xpush : createChannel end", result);
-  	  if(err) {
-  	  	if(cb)cb(err, result);
+  	  if(err && err != 'WARN-EXISTED') {
+  	  	if(cb){
+          cb(err, result);
+        }
   	  }
       channelNm = result.C || channelNm;
       self.getChannelInfo(channelNm,function(err,data){
@@ -151,7 +155,6 @@
           });
         });
       }
-      console.log(result);
       cb(err,result);
     });
   };
@@ -320,7 +323,6 @@
     if(!ch){
       self._channels[channel] = ch;
       ch = self._makeChannel();
-      alert(channel);
       self.getChannelInfo(channel,function(err,data){
         if(err){
           console.log(" == node channel " ,err);
@@ -651,6 +653,7 @@
   	this.info;
     this.messageStack = [];
     this.isFirtConnect = true;
+    this._connected = false;
 
     //self.on('received', function(data){
       //self._xpush.calcChannel(self);
@@ -705,14 +708,19 @@
 
     console.log( 'xpush : socketconnect', self._server.serverUrl+'/'+self._type+'?'+query);
     self._socket.on('connect', function(){
+      console.log( 'channel connection completed' );
       while(self.messageStack.length > 0 ){
         var t = self.messageStack.shift();
         self.send(t.NM, t.DT);
       }
-
+      self._connected = true;
       if(!self.isFirtConnect) return;
       self.isFirtConnect = false;
       self.connectionCallback(cbConnect);
+    });
+
+    self._socket.on('disconnect',function(){
+      self._connected = false;
     });
   };
 
@@ -735,7 +743,7 @@
 
   Connection.prototype.send = function(name, data,cb){
   	var self = this;
-    if(self._socket.connected){
+    if(self._connected){
       self._socket.emit('send', {NM: name , DT: data});
     }else{
       self.messageStack.push({NM: name, DT: data});
