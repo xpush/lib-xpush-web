@@ -78,7 +78,7 @@
       if(result.status == 'ok'){
         // result.result = {"token":"HS6pNwzBoK","server":"215","serverUrl":"http://www.notdol.com:9990"};
         var c = self._sessionConnection = new Connection(self, SESSION, result.result);
-        
+
     		c.connect(function(){
     			console.log("xpush : login end", self.userId);
     			self.initSessionSocket(self._sessionConnection._socket, function(){
@@ -328,9 +328,10 @@
     // 채널이 생성되어 있지 않으면
     var self = this;
     var ch = self.getChannel(channel);
+
     if(!ch){
       self._channels[channel] = ch;
-      ch = self._makeChannel();
+      ch = self._makeChannel(channel);
       self.getChannelInfo(channel,function(err,data){
         if(err){
           console.log(" == node channel " ,err);
@@ -717,11 +718,12 @@
     console.log( 'xpush : socketconnect', self._server.serverUrl+'/'+self._type+'?'+query);
     self._socket.on('connect', function(){
       console.log( 'channel connection completed' );
+      self._connected = true;
       while(self.messageStack.length > 0 ){
+        console.log( "111111 : "  + self.messageStack.length  );
         var t = self.messageStack.shift();
         self.send(t.NM, t.DT);
       }
-      self._connected = true;
       if(!self.isFirtConnect) return;
       self.isFirtConnect = false;
       self.connectionCallback(cbConnect);
