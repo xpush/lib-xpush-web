@@ -480,25 +480,67 @@
     });
   };
 
-  XPush.prototype.ajax = function( context, type, sendData , cb){
+  XPush.prototype.ajax = function( context, method, data , cb){
     var self = this;
-    sendData = sendData || {};
-    console.log("xpush : ajax ", self.hostname+context,type,sendData);
-    var ajax = $.ajax({
-      url : self.hostname+context,
-      type: type,
-      data : sendData,
-      headers : self.headers
-    });
 
-    ajax.done(function(data){
-      cb(null,data);
-    })
-    .fail(function(){
-      console.log("xpush : ajax error", self.hostname+context,type,sendData);
-      cb(new Error(),{});
-    });
-    return ajax;
+    var xhr;
+    try{
+      xhr = new XMLHttpRequest();
+    }catch (e){
+      try{
+        xhr = new XDomainRequest();
+      } catch (e){
+        try{
+          xhr = new ActiveXObject('Msxml2.XMLHTTP');
+        }catch (e){
+          try{
+            xhr = new ActiveXObject('Microsoft.XMLHTTP');
+          }catch (e){
+            console.error('\nYour browser is not compatible with XPUSH AJAX');                           
+          }
+        }
+      }
+    }
+
+    var _url = self.hostname+context;
+
+    var param = Object.keys(data).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
+    }).join('&')
+
+    method = (method.toLowerCase() == "get") ? "GET":"POST";
+    param  = (param == null || param == "") ? null : param;
+    if(method == "GET" && param != null){
+      _url = _url + "?" + param;
+    }
+
+    xhr.open(method, _url, true);
+    xhr.onreadystatechange = function() {
+         
+      if(xhr.readyState < 4) {
+        return;
+      }
+             
+      if(xhr.status !== 200) {
+        console.log("xpush : ajax error", self.hostname+context,param);
+        cb(xhr.status,{});
+      }
+
+      if(xhr.readyState === 4) {
+        var r = JSON.parse(xhr.responseText);
+        if(r.status != 'ok'){
+          cb(r.status,r.mesage);
+        }else{
+          cb(null,r);
+        }
+      }           
+    };
+
+    console.log("xpush : ajax ", self.hostname+context,method,param);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send( (method == "POST") ? param : null);
+
+    return;
   };
 
   XPush.prototype.sEmit = function(key, params, cb){
