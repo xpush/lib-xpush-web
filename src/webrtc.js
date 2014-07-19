@@ -5,6 +5,10 @@
   var remoteStream;
   var turnReady;
 
+  var xpush;
+  var channel;
+  var channelNm;
+
   var CONFIG = {};
   var STATUS = {
     READY: false,
@@ -12,35 +16,8 @@
     STARTED: false
   };
 
-
-  var XWebRTC = function(host, app, channel, userId, localVideo, remoteVideo){
-    var self = this;
-
-    CONFIG.constraints = {video: true};
-    CONFIG.pc = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]};
-    CONFIG.pcConstraints = {'optional': [{'DtlsSrtpKeyAgreement': true}]};
-    CONFIG.sdpConstraints = {'mandatory': {'OfferToReceiveAudio':true,'OfferToReceiveVideo':true }};
-
-    this.channelName = channel;
-    this.xpush = new XPush(host, app, this.eventHandler);
-    this.xpush.createSimpleChannel(channel, userId, function(err, data){
-      if(err){
-        console.error("CHANNEL CREATE" ,err);
-      }
-    });
-
-  };
-
-
-  XWebRTC.prototype.eventHandler = function(type, data) {
-    
+  var _initProcess = function (type, data){
     console.log('EVENT', type, data);
-    var self = this;
-
-    this.channel = this.xpush.getChannel(this.channelName);
-    this.channel.on('message', function(data){
-      console.log('MESSAGE', data);
-    })
 
     if(data.event == 'CONNECTION'){
       // channel 연결 후!
@@ -53,22 +30,51 @@
 
       }
 
-      getUserMedia(constraints, this.handleUserMedia, this.handleUserMediaError);
+      if(!channel){
+        channel = xpush.getChannel(channelNm);
+      }
+
+      getUserMedia(CONFIG.constraints, handleUserMedia, handleUserMediaError);
 
     }
-  }
 
-  XWebRTC.prototype.handleUserMedia = function(stream) {
+  };
+
+
+  var XWebRTC = function(host, app, channelName, userId, localVideo, remoteVideo){
+    var self = this;
+
+    CONFIG.constraints = {video: true};
+    CONFIG.pc = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]};
+    CONFIG.pcConstraints = {'optional': [{'DtlsSrtpKeyAgreement': true}]};
+    CONFIG.sdpConstraints = {'mandatory': {'OfferToReceiveAudio':true,'OfferToReceiveVideo':true }};
+
+    channelNm = channelName;
+    xpush = new XPush(host, app, _initProcess);
+
+    xpush.createSimpleChannel(channelNm, userId, function(err, data){
+      if(err){
+        console.error("CHANNEL CREATE" ,err);
+      }
+    });
+
+    xpush.on('message',function(ch,name,data){
+      console.log(ch,name,data);
+    });
+
+  };
+
+  var handleUserMedia = function(stream) {
     console.log('Adding local stream.');
     localVideo.src = window.URL.createObjectURL(stream);
     localStream = stream;
-    this.xpush.send(this.channelName, 'message', 'MEDIA');
+    channel.send('message', 'MEDIA');
     if (STATUS.INIT) {
-      this.maybeStart();
+      maybeStart();
     }
   };
 
-  XWebRTC.prototype.handleUserMediaError = function(error){
+  var handleUserMediaError = function(error){
     console.log('getUserMedia error: ', error);
   };
 

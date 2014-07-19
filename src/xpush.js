@@ -745,7 +745,13 @@
         'U='+self._xpush.userId+'&'+
         'D='+self._xpush.deviceId+'&'+
         'S='+self.info.server.name;
-      if(mode) query = query +'&MD='+ mode;
+
+      if(mode){
+        if(mode == 'CHANNEL_ONLY'){
+          self._xpush.isExistUnread = false;
+        }
+        query = query +'&MD='+ mode;
+      }
     }
 
     self._socket = io.connect(self._server.serverUrl+'/'+self._type+'?'+query, socketOptions);
@@ -778,11 +784,13 @@
   		self._xpush.emit(RMKEY, self.chNm, RMKEY , data);
   	});
 
-    if(self._isEventHandler) {
+
+    if(self._xpush._isEventHandler) {
+
       self._socket.on('_event',function(data){
 
         switch(data.event){
-          case 'CONNECT' :
+          case 'CONNECTION' :
             self._xpush.emit('___session_event', 'CHANNEL', data);
           break;
           case 'DISCONNECT' :
