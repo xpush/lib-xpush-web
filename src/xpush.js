@@ -1,8 +1,4 @@
 ;(function() {
-  var serverConf = {
-  	host: 'http://www.notdol.com',
-  	port: 8000
-  };
 
   var SESSION = 'session';
   var CHANNEL = 'channel';
@@ -141,6 +137,30 @@
     return newChannel;
   };
 
+  // create new Channel ( *** CHANNEL_ONLY *** )
+  XPush.prototype.createSimpleChannel = function(users, channel, userId, cb){
+    var self = this;
+
+    var ch = self._makeChannel(channel);
+    self.getChannelInfo(channel,function(err,data){
+      if(err){
+        console.log(" == node channel " ,err);
+        if(cb) cb(err);
+      }else if ( data.status == 'ok'){
+
+        ch.info = data.result;
+        ch._server = {serverUrl : data.result.server.url};
+        ch.chNm = data.result.channel;
+
+        ch.connect(function(){
+          if(cb) cb();
+        }, 'CHANNEL_ONLY');
+
+      }
+    });
+
+  };
+
   XPush.prototype.getChannels = function(cb){
     var self = this;
     console.log("xpush : getChannels ",self.userId);
@@ -248,8 +268,7 @@
     var self = this;
     var ch = self.getChannel(channel);
 
-    return
-      ch.info.server.url +
+    return ch.info.server.url +
       '/download/' +
       ch._xpush.appId +
       '/'+ch.info.channel +
@@ -337,10 +356,13 @@
           console.log(" == node channel " ,err);
         }else if ( data.status == 'ok'){
           ch.setServerInfo(data.result);
+          ch.send(name,data);
         }
       });
+    }else{
+      ch.send(name,data);
     }
-    ch.send(name,data);
+
   };
 
   XPush.prototype.getUnreadMessage = function(cb){
@@ -352,7 +374,7 @@
       if(result && result.length > 0){
         result.sort(UTILS.messageTimeSort);
       }
-      
+
       self.sEmit('message-received');
       cb(err, result);
     });
@@ -488,7 +510,6 @@
     //});
 
     socket.on('disconnect',function(){
-      var self = this;
       self.isExistUnread = true;
     });
   };
@@ -509,7 +530,7 @@
           try{
             xhr = new ActiveXObject('Microsoft.XMLHTTP');
           }catch (e){
-            console.error('\nYour browser is not compatible with XPUSH AJAX');                           
+            console.error('\nYour browser is not compatible with XPUSH AJAX');
           }
         }
       }
@@ -518,8 +539,8 @@
     var _url = self.hostname+context;
 
     var param = Object.keys(data).map(function(k) {
-      return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
-    }).join('&')
+      return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]);
+    }).join('&');
 
     method = (method.toLowerCase() == "get") ? "GET":"POST";
     param  = (param == null || param == "") ? null : param;
@@ -529,11 +550,11 @@
 
     xhr.open(method, _url, true);
     xhr.onreadystatechange = function() {
-         
+
       if(xhr.readyState < 4) {
         return;
       }
-             
+
       if(xhr.status !== 200) {
         console.log("xpush : ajax error", self.hostname+context,param);
         cb(xhr.status,{});
@@ -546,7 +567,7 @@
         }else{
           cb(null,r);
         }
-      }           
+      }
     };
 
     console.log("xpush : ajax ", self.hostname+context,method,param);
@@ -649,7 +670,7 @@
   };
 
   var Connection = function(xpush , type, server){
-    var self = this;
+
     this._xpush = xpush;
     this._server = server;
     this._type = type;
@@ -695,7 +716,7 @@
   	});
   };
 
-  Connection.prototype.connect = function(cbConnect){
+  Connection.prototype.connect = function(cbConnect, mode){
     var self = this;
       var query =
         'A='+self._xpush.appId+'&'+
@@ -711,6 +732,7 @@
         'U='+self._xpush.userId+'&'+
         'D='+self._xpush.deviceId+'&'+
         'S='+self.info.server.name;
+      if(mode) query = query +'&MD='+ mode;
     }
 
     self._socket = io.connect(self._server.serverUrl+'/'+self._type+'?'+query, socketOptions);
