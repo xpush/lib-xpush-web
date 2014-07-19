@@ -14,7 +14,7 @@
 
   var RMKEY = 'message';
 
-  var XPush = function(host, appId){
+  var XPush = function(host, appId, eventHandler){
     if(!host){alert('params(1) must have hostname'); return;}
     if(!appId){alert('params(2) must have appId'); return;}
     var self = this;
@@ -35,6 +35,11 @@
   	self.on('newChannel',function(data){
   		self.channelNameList.push( data.chNm );
   	});
+
+    if(eventHandler){
+      self._isEventHandler = true;
+      self.on('___session_event', eventHandler);
+    }
   };
 
   XPush.Context = {
@@ -138,7 +143,7 @@
   };
 
   // create new Channel ( *** CHANNEL_ONLY *** )
-  XPush.prototype.createSimpleChannel = function(users, channel, userId, cb){
+  XPush.prototype.createSimpleChannel = function(channel, userObj, cb){
     var self = this;
 
     var ch = self._makeChannel(channel);
@@ -147,6 +152,14 @@
         console.log(" == node channel " ,err);
         if(cb) cb(err);
       }else if ( data.status == 'ok'){
+
+        if(userObj){
+          self.userId = userObj.U || 'someone';
+          self.deviceId = userObj.D || 'WEB';
+        }else{
+          self.userId = 'someone';
+          self.deviceId = 'WEB';
+        }
 
         ch.info = data.result;
         ch._server = {serverUrl : data.result.server.url};
@@ -457,11 +470,11 @@
         break;
 
         case 'CONNECT' :
-          //app , channel, userId, count
+          self.emit('___session_event', 'SESSION', data);
         break;
 
         case 'DISCONNECT' :
-
+          self.emit('___session_event', 'SESSION', data);
         break;
 
       }
@@ -764,6 +777,22 @@
   		console.log("xpush : channel receive ", self.chNm, data, self._xpush.userId);
   		self._xpush.emit(RMKEY, self.chNm, RMKEY , data);
   	});
+
+    if(self._isEventHandler) {
+      self._socket.on('_event',function(data){
+
+        switch(data.event){
+          case 'CONNECT' :
+            self._xpush.emit('___session_event', 'CHANNEL', data);
+          break;
+          case 'DISCONNECT' :
+            self._xpush.emit('___session_event', 'CHANNEL', data);
+          break;
+        }
+
+      });
+    }
+
     if(cb)cb();
   };
 

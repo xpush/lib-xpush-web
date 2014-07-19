@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Simple Example</title>
+  <script type="text/javascript" src="../libs/socketio/socket.io.js"></script>
+</head>
+<body>
+
+  ^^;<br><br><br>
+
+  <div id='videos'>
+    <video id='localVideo' autoplay muted></video>
+    <video id='remoteVideo' autoplay></video>
+  </div>
+
+  <script src="../src/xpush.js"></script>
+  <script src="../src/webrtc-adapter.js"></script>
+  <script src="../src/webrtc.js"></script>
+
+  <script type="text/javascript">
+
+  var localVideo  = document.querySelector('#localVideo');
+  var remoteVideo = document.querySelector('#remoteVideo');
+
+  var xpush1 = new XWebRTC(
+    'http://chat.stalk.io:8000', 'TEST-WebRTC', 'YouAndMe', 'yohan',
+    localVideo, remoteVideo);
+
+  </script>
+
+</body>
+</html>
