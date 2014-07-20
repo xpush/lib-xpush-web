@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <title>Simple Example</title>
-  <script type="text/javascript" src="../libs/socketio/socket.io.js"></script>
+  <script type="text/javascript" src="../../libs/socketio/socket.io.js"></script>
 </head>
 <body>
 
@@ -13,9 +13,9 @@
     <video id='remoteVideo' autoplay></video>
   </div>
 
-  <script src="../src/xpush.js"></script>
-  <script src="../src/webrtc-adapter.js"></script>
-  <script src="../src/webrtc.js"></script>
+  <script src="../../src/xpush.js"></script>
+  <script src="../../src/webrtc-adapter.js"></script>
+  <script src="../../src/webrtc.js"></script>
 
   <script type="text/javascript">
 
@@ -23,7 +23,7 @@
   var remoteVideo = document.querySelector('#remoteVideo');
 
   var webrtc = new XWebRTC(
-    'http://chat.stalk.io:8000', 'TEST-WebRTC', 'YouAndMe', 'yohan',
+    'http://chat.stalk.io:8000', 'TEST-WebRTC', 'CH-000001', {U:'john', D:'WEB'},
     localVideo, remoteVideo);
 
   </script>

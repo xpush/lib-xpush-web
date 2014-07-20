@@ -8,6 +8,7 @@
   var xpush;
   var channel;
   var channelNm;
+  var userId;
 
   var localVideo;
   var remoteVideo;
@@ -22,7 +23,7 @@
   var _initProcess = function (type, data){
     console.log('EVENT', type, data);
 
-    if(data.event == 'CONNECTION'){
+    if(data.event == 'CONNECTION' && userId == data.U){
 
       if(!channel){
         channel = xpush.getChannel(channelNm);
@@ -58,6 +59,7 @@
     channelNm   = _channelName;
     localVideo  = _localVideo;
     remoteVideo = _remoteVideo;
+    userId      = _userId.U;
 
     xpush = new XPush(_host, _app, _initProcess);
 
@@ -73,16 +75,23 @@
 
       if (message === 'MEDIA') {
   	     maybeStart();
+
       }else if (message === 'JOIN') {
          STATUS.READY = true;
+
       } else if (message.type === 'offer') {
+
+        console.warn(STATUS);
+
         if (!STATUS.INIT && !STATUS.STARTED) {
           maybeStart();
         }
         pc.setRemoteDescription(new RTCSessionDescription(message));
         doAnswer();
+
       } else if (message.type === 'answer' && STATUS.STARTED) {
         pc.setRemoteDescription(new RTCSessionDescription(message));
+
       } else if (message.type === 'candidate' && STATUS.STARTED) {
         var candidate = new RTCIceCandidate({
           sdpMLineIndex: message.label,
@@ -110,6 +119,8 @@
   };
 
   var maybeStart = function () {
+    console.warn(STATUS);
+    console.log(!STATUS.STARTED, localStream, STATUS.READY);
     if (!STATUS.STARTED && typeof localStream != 'undefined' && STATUS.READY) {
       createPeerConnection();
       pc.addStream(localStream);
@@ -168,7 +179,6 @@
   var handleCreateOfferError = function (event){
     console.log('createOffer() error: ', e);
   };
-
 
   var doCall = function () {
     console.log('Sending offer to peer');
