@@ -22,7 +22,7 @@
   var localVideo  = document.querySelector('#localVideo');
   var remoteVideo = document.querySelector('#remoteVideo');
 
-  var xpush1 = new XWebRTC(
+  var webrtc = new XWebRTC(
     'http://chat.stalk.io:8000', 'TEST-WebRTC', 'YouAndMe', 'yohan',
     localVideo, remoteVideo);
 
