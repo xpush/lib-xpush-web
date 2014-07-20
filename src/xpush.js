@@ -281,7 +281,7 @@
     var self = this;
     var ch = self.getChannel(channel);
 
-    return ch.info.server.url +
+    var result = ch.info.server.url +
       '/download/' +
       ch._xpush.appId +
       '/'+ch.info.channel +
@@ -289,18 +289,24 @@
       '/'+ch._socket.io.engine.id +
       '/'+fileName;
 
+    return result;
   };
 
   XPush.prototype._makeChannel = function(chNm){
     var self = this;
     console.log('xpush : connection _makeChannel ',chNm);
+    for( var key in self._channels ){
+      if( key == chNm ){
+        return self._channels[key];
+      }
+    }
+
     var ch = new Connection(self,CHANNEL);
     if(chNm) {
       ch.chNm = chNm;
       self._channels[chNm] = ch;
     }
     return ch;
-    //if(chNm)
   };
 
   XPush.prototype.calcChannel = function(ch){
