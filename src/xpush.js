@@ -296,7 +296,7 @@
     var self = this;
     console.log('xpush : connection _makeChannel ',chNm);
     for( var key in self._channels ){
-      if( key == chNm ){
+      if( key == chNm && self._channels[key] != undefined && self._channels[key]._connected ){
         return self._channels[key];
       }
     }
@@ -370,11 +370,11 @@
     if(!ch){
       self._channels[channel] = ch;
       ch = self._makeChannel(channel);
-      self.getChannelInfo(channel,function(err,data){
+      self.getChannelInfo(channel,function(err,json){
         if(err){
           console.log(" == node channel " ,err);
-        }else if ( data.status == 'ok'){
-          ch.setServerInfo(data.result);
+        }else if ( json.status == 'ok'){
+          ch.setServerInfo(json.result);
           ch.send(name,data);
         }
       });
