@@ -261,8 +261,8 @@
     for(var i=0; i<inputObj.file.files.length; i++){
       var file   = inputObj.file.files[i];
       var size   = 0;
-      streams[i] = ss.createStream();
-      blobs[i]   = ss.createBlobReadStream(file);
+      streams[i] = ss.createStream({highWaterMark: 64 * 1024});
+      blobs[i]   = ss.createBlobReadStream(file, {highWaterMark: 64 * 1024});
 
       blobs[i].on('data', function(chunk) {
         size += chunk.length;
