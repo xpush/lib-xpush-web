@@ -202,7 +202,7 @@
 
   XPush.prototype.getChannelsActive = function(data, cb){ //data.key(option)
     var self = this;
-    self.sEmit('channel-list-active',function(err, result){
+    self.sEmit('channel-list-active',data, function(err, result){
       //app, channel, created
       cb(result);
     });
