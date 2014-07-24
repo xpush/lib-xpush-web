@@ -103,7 +103,7 @@
     var self = this;
     self._sessionConnection.disconnect();
   };
-  
+
   // params.channel(option), params.users
   XPush.prototype.createChannel = function(users, channel, datas, cb){
     var self = this;
@@ -299,7 +299,7 @@
 
   };
 
-  XPush.prototype.uploadFile = function(channel, img, inputObj, options, fnCallback){
+  XPush.prototype.uploadFile = function(channel, img, inputObj, fnCallback){
     var self = this;
 
     self._getChannelAsync(channel, function(err, ch){
