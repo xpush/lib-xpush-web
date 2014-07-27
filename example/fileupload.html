@@ -1,0 +1,76 @@
+<html>
+<head>
+	<title></title>
+</head>
+<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<!--script src="https://cdn.socket.io/socket.io-1.0.6.js"></script-->
+<!--script src="http://www.notdol.com:9990/socket.io/socket.io.js"></script-->
+<script type="text/javascript" src="../libs/socketio/socket.io.js"></script>
+<script type="text/javascript" src="../libs/socketio/socket.io-stream.js"></script>
+<script type="text/javascript" src="../src/xpush.js"></script>
+
+<body>
+
+ FILE : <input id="uploadFile" type="file" />
+<input type="button" id="addButton" value="Upload File">
+
+<input type="button" id="urlButton" value="File URL">
+
+<script type="text/javascript">
+
+var HOST = "http://chat.stalk.io:8000";
+var APPID = 'stalk.io';
+
+var xpush = new XPush(HOST, APPID);
+
+xpush.login('yohan','password', 'web', function(err){
+
+	console.log(err);
+
+	xpush.createChannel(['yohan', 'james'], 'TEST_CH01', function(err, name){
+		console.log(err);
+
+	//	xpush.send('TEST_CH01', 'AAAA',{data:'asdf'});
+
+	});
+
+});
+
+
+var uploadbutton = document.getElementById("addButton");
+
+uploadbutton.onclick = function(e){
+
+	var fileObject = document.getElementById("uploadFile");
+
+	xpush.uploadFile('TEST_CH01', {
+		file: fileObject,
+		//overwrite: true,
+		type: 'image'
+	}, function(data, idx){
+		console.log("progress  ["+idx+"]: "+data);
+	}, function(data,idx){
+		console.log("completed ["+idx+"]: "+JSON.stringify(data));
+	});
+
+};
+
+
+var urlbutton = document.getElementById("urlButton");
+
+urlbutton.onclick = function(e){
+
+	xpush.fileUrl('TEST_CH01', 'ZkPEGNGHg', function(data){
+		console.log(data);
+	});
+
+
+};
+
+
+</script>
+
+
+
+</body>
+</html>
