@@ -102,6 +102,11 @@
   XPush.prototype.logout = function(userId, deviceId){
     var self = this;
     self._sessionConnection.disconnect();
+    for( var key in self._channels ){
+      if( self._channels[key]._connected ){
+        self._channels[key].disconnect();
+      }
+    }
   };
 
   // params.channel(option), params.users
@@ -425,8 +430,8 @@
     params = params == undefined ? {}: params;
     var self = this;
     console.log("xpush : getUsertList ",params);
-    self.sEmit('user-list' ,params,function(err,result){
-        if(cb) cb(err, result);
+    self.sEmit('user-list' , params, function(err, result){
+        if(cb) cb(err, result.users, result.count);
     });
   };
 
