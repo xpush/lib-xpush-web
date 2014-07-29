@@ -178,10 +178,12 @@
     return undefined;
   };
 
-  XPush.prototype.joinChannel = function(chNm, /*userId,*/ cb){
+  XPush.prototype.joinChannel = function(channel, param, fnCallback){
     var self = this;
-    self.sEmit('channel-join', {C: chNm, U: /*userId*/{} }, function(err, result){
-      if(cb) cb(err,result);
+    self._getChannelAsync(channel, function (err, ch){
+      ch.joinChannel( param, function( data ){
+        fnCallback( data );
+      });
     });
   };
 
@@ -749,6 +751,15 @@
       self.messageStack.push({NM: name, DT: data});
     }
   };
+
+  Connection.prototype.joinChannel = function(param, cb){
+    var self = this;
+    if(self._socket.connected){
+      self._socket.emit('join', param, function( data ){
+        cb( data );
+      });
+    }
+  }; 
 
   Connection.prototype.upload = function(stream, data, cb){
     var self = this;
