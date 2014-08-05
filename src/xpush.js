@@ -14,7 +14,7 @@
 
   var RMKEY = 'message';
 
-  var XPush = function(host, appId, eventHandler){
+  var XPush = function(host, appId, eventHandler, autoInitFlag){
     if(!host){alert('params(1) must have hostname'); return;}
     if(!appId){alert('params(2) must have appId'); return;}
     var self = this;
@@ -31,6 +31,11 @@
     self.hostname = host;
     self.receiveMessageStack = [];
     self.isExistUnread = true;
+    self.autoInitFlag = true;
+
+    if( autoInitFlag !=undefined ){
+      self.autoInitFlag = autoInitFlag;
+    }
 
     self.on('newChannel',function(data){
       self.channelNameList.push( data.chNm );
@@ -55,6 +60,7 @@
 
   XPush.prototype.signup = function(userId, password, deviceId, cb){
     var self = this;
+
     if(typeof(deviceId) == 'function' && !cb){
       cb = deviceId;
       deviceId = 'WEB';
@@ -64,17 +70,23 @@
     self.ajax( XPush.Context.SIGNUP , 'POST', sendData, cb);
   };
 
-  XPush.prototype.login = function(userId, password, deviceId, cbLogin){
+  XPush.prototype.login = function(userId, password, deviceId, mode,cbLogin){
     var self = this;
 
-    if(typeof(deviceId) == 'function' && !cbLogin){
+    if(typeof(deviceId) == 'function' && !mode && !cbLogin){
       cbLogin = deviceId;
       deviceId = 'WEB';
+    }
+
+    if(typeof(mode) == 'function' && !cb){
+      cbLogin = mode;
     }
 
     self.userId = userId;
     self.deviceId = deviceId;
     var sendData = {A: self.appId, U: userId, PW: password, D: deviceId};
+    if(mode) sendData.MD = mode;
+
     self.ajax( XPush.Context.LOGIN , 'POST', sendData, function(err, result){
 
       if(err){
@@ -99,9 +111,30 @@
     });
   };
 
+  XPush.prototype.setSessionInfo = function(userId, deviceId, cbLogin){
+    var self = this;
+
+    if(typeof(deviceId) == 'function' && !cbLogin){
+      cbLogin = deviceId;
+      deviceId = 'WEB';
+    }
+
+
+
+    self.userId = userId;
+    self.deviceId = deviceId;
+
+    cbLogin();
+  };
+
   XPush.prototype.logout = function(userId, deviceId){
     var self = this;
     self._sessionConnection.disconnect();
+    for( var key in self._channels ){
+      if( self._channels[key]._connected ){
+        self._channels[key].disconnect();
+      }
+    }
   };
 
   // params.channel(option), params.users
@@ -230,10 +263,12 @@
     });
   };
 
-  XPush.prototype.joinChannel = function(chNm, /*userId,*/ cb){
+  XPush.prototype.joinChannel = function(channel, param, fnCallback){
     var self = this;
-    self.sEmit('channel-join', {C: chNm, U: /*userId*/{} }, function(err, result){
-      if(cb) cb(err,result);
+    self._getChannelAsync(channel, function (err, ch){
+      ch.joinChannel( param, function( data ){
+        fnCallback( data );
+      });
     });
   };
 
@@ -249,14 +284,15 @@
     var ch = self.getChannel(channel);
     if(!ch){
       self._channels[channel] = ch;
-      ch = self._makeChannel();
+      ch = self._makeChannel(channel);
       self.getChannelInfo(channel,function(err,data){
         if(err){
           console.log(" == node channel " ,err);
           cb(err);
         }else if ( data.status == 'ok'){
-          ch.setServerInfo(data.result);
-          cb(false, ch);
+          ch.setServerInfo(data.result, function(){
+            cb(false, ch);
+          });
         }
       });
     }else{
@@ -425,31 +461,44 @@
     params = params == undefined ? {}: params;
     var self = this;
     console.log("xpush : getUsertList ",params);
-    self.sEmit('user-list' ,params,function(err,result){
-        if(cb) cb(err, result);
+    self.sEmit('user-list' , params, function(err, result){
+        if(cb) cb(err, result.users, result.count);
     });
   };
 
-  XPush.prototype.send = function(channel, name, data){
-    // 채널이 생성되어 있지 않으면
+  //params.key, value
+  XPush.prototype.queryUser = function(_params,  cb){
+
     var self = this;
-    var ch = self.getChannel(channel);
 
-    if(!ch){
-      self._channels[channel] = ch;
-      ch = self._makeChannel(channel);
-      self.getChannelInfo(channel,function(err,json){
-        if(err){
-          console.log(" == node channel " ,err);
-        }else if ( json.status == 'ok'){
-          ch.setServerInfo(json.result);
-          ch.send(name,data);
-        }
-      });
-    }else{
+    if(!_params.query) {
+      console.error('Query User', 'query is not existed.');
+    };
+    if(!_params.column) {
+      console.error('Query User', 'column is not existed.');
+    };
+
+    var params = {
+      query : _params.query,
+      column: _params.column
+    };
+
+    if(_params.options) params['options'] = _params.options;
+
+    console.log("xpush : queryUser ",params);
+
+    self.sEmit('user-query' , params, function(err, result){
+        if(cb) cb(err, result.users, result.count);
+    });
+
+  };
+
+  XPush.prototype.send = function(channel, name, data){
+    var self = this;
+
+    self._getChannelAsync(channel, function (err, ch){
       ch.send(name,data);
-    }
-
+    });
   };
 
   XPush.prototype.getUnreadMessage = function(cb){
@@ -498,7 +547,7 @@
   if(typeof(arguments[1]) == 'function') {cb = arguments[1]; userId = groupId; groupId = undefined;}
     groupId = groupId ? groupId : self.userId;
 
-    self.sEmit('group-remove',{'GR': groupId, userId: userId}, function(err, result){
+    self.sEmit('group-remove',{'GR': groupId, 'U': userId}, function(err, result){
         cb(err,result);
     });
   };
@@ -576,30 +625,37 @@
       console.log('xpush : session receive ', CHANNEL, arguments, self.userId);
     });
 
-    self.getChannels(function(err,data){
-      self.channelNameList = data;
-      if(cb) cb();
-    });
 
-    //socket.on('connect',function(){
-      self.getUnreadMessage(function(err, data){
-        if(data && data.length > 0 ){
-          for(var i = data.length-1 ; i >= 0; i--){
-
-            data[i].MG.DT = JSON.parse(data[i].MG.DT);
-            self.receiveMessageStack.unshift([RMKEY,  data[i].MG.DT.C, data[i].NM,  data[i].MG.DT]);
-            //self.emit(RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data);
-          }
-          self.isExistUnread = false;
-          while(self.receiveMessageStack.length > 0 ){
-            var t = self.receiveMessageStack.shift();
-            self.emit.apply(self, t );
-          }
-        }else{
-          self.isExistUnread = false;
-        }
+    if( self.autoInitFlag ){
+      self.getChannels(function(err,data){
+        self.channelNameList = data;
+        if(cb) cb();
       });
-    //});
+    } else {
+      if(cb) cb();
+    }
+
+    if( self.autoInitFlag ){
+      socket.on('connect',function(){
+        self.getUnreadMessage(function(err, data){
+          if(data && data.length > 0 ){
+            for(var i = data.length-1 ; i >= 0; i--){
+
+              data[i].MG.DT = JSON.parse(data[i].MG.DT);
+              self.receiveMessageStack.unshift([RMKEY,  data[i].MG.DT.C, data[i].NM,  data[i].MG.DT]);
+              //self.emit(RMKEY,  data[i].message.data.channel, data[i].name,  data[i].message.data);
+            }
+            self.isExistUnread = false;
+            while(self.receiveMessageStack.length > 0 ){
+              var t = self.receiveMessageStack.shift();
+              self.emit.apply(self, t );
+            }
+          }else{
+            self.isExistUnread = false;
+          }
+        });
+      });
+    }
 
     socket.on('disconnect',function(){
       self.isExistUnread = true;
@@ -907,6 +963,15 @@
       self._socket.emit('send', {NM: name , DT: data});
     }else{
       self.messageStack.push({NM: name, DT: data});
+    }
+  };
+
+  Connection.prototype.joinChannel = function(param, cb){
+    var self = this;
+    if(self._socket.connected){
+      self._socket.emit('join', param, function( data ){
+        cb( data );
+      });
     }
   };
 
