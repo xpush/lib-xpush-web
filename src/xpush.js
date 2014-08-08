@@ -310,9 +310,21 @@
 
       for(var i=0; i<inputObj.file.files.length; i++){
         var file   = inputObj.file.files[i];
+        var bufferSize = 128;
+
+        // larger than 1M
+        if( file.size > ( 1024 * 1024 ) ){
+          bufferSize = 256;
+        } else if ( file.size > ( 4 * 1024 * 1024 ) ){
+          bufferSize = 512;
+        }
+
+        console.log( ( file.size / 1024 ) + "k");
+        console.log( bufferSize );
+
         var size   = 0;
-        streams[i] = ss.createStream({highWaterMark: 64 * 1024});
-        blobs[i]   = ss.createBlobReadStream(file, {highWaterMark: 64 * 1024});
+        streams[i] = ss.createStream({highWaterMark: bufferSize * 1024});
+        blobs[i]   = ss.createBlobReadStream(file, {highWaterMark: bufferSize * 1024});
 
         blobs[i].on('data', function(chunk) {
           size += chunk.length;
@@ -572,23 +584,25 @@
       switch(data.event){
         case 'NOTIFICATION':
           var ch = self.getChannel(data.C);
-          if(!ch){
-            ch = self._makeChannel(data.C);
+          if( self.autoInitFlag ){
+            if(!ch){
+              ch = self._makeChannel(data.C);
 
-            self.getChannelInfo(data.C,function(err,data){
+              self.getChannelInfo(data.C,function(err,data){
 
-              if(err){
-                console.log(" == node channel " ,err);
-              }else if ( data.status == 'ok'){
-                ch.setServerInfo(data.result);
+                if(err){
+                  console.log(" == node channel " ,err);
+                }else if ( data.status == 'ok'){
+                  ch.setServerInfo(data.result);
+                }
+              });
+              //self.emit('channel-created', {ch: ch, chNm: data.channel});
+              if(!self.isExistChannel(data.channel)) {
+                self.emit('newChannel', ch);
               }
-            });
-            //self.emit('channel-created', {ch: ch, chNm: data.channel});
-            if(!self.isExistChannel(data.channel)) {
-              self.emit('newChannel', ch);
             }
+            ch.emit(data.NM , data.DT);
           }
-          ch.emit(data.NM , data.DT);
           self.emit(RMKEY, data.C, data.NM, data.DT);
         break;
 
