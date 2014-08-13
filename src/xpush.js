@@ -129,12 +129,19 @@
 
   XPush.prototype.logout = function(userId, deviceId){
     var self = this;
-    self._sessionConnection.disconnect();
-    for( var key in self._channels ){
-      if( self._channels[key]._connected ){
-        self._channels[key].disconnect();
+    if( self != undefined ) {
+      if( self._sessionConnection != undefined  ){
+        self._sessionConnection.disconnect();
       }
-    }
+
+      if( self._channels != undefined  ){
+        for( var key in self._channels ){
+          if( self._channels[key]._connected ){
+            self._channels[key].disconnect();
+          }
+        }
+      }
+    }      
   };
 
   // params.channel(option), params.users
@@ -318,7 +325,7 @@
         } else if ( file.size > ( 4 * 1024 * 1024 ) ){
           bufferSize = 512;
         }
-
+        
         var size   = 0;
         streams[i] = ss.createStream({highWaterMark: bufferSize * 1024});
         blobs[i]   = ss.createBlobReadStream(file, {highWaterMark: bufferSize * 1024});
@@ -581,6 +588,7 @@
       switch(data.event){
         case 'NOTIFICATION':
           var ch = self.getChannel(data.C);
+
           if( self.autoInitFlag ){
             if(!ch){
               ch = self._makeChannel(data.C);
@@ -600,7 +608,7 @@
             }
             ch.emit(data.NM , data.DT);
           }
-          self.emit(RMKEY, data.C, data.NM, data.DT);
+          self.emit(data.NM, data.C, data.NM, data.DT);
         break;
 
         case 'CONNECT' :
@@ -941,6 +949,11 @@
     self._socket.on('message',function(data){
       console.log("xpush : channel receive ", self.chNm, data, self._xpush.userId);
       self._xpush.emit(RMKEY, self.chNm, RMKEY , data);
+    });
+
+    self._socket.on('system',function(data){
+      console.log("xpush : channel receive system", self.chNm, data, self._xpush.userId);
+      self._xpush.emit("system", self.chNm, "system" , data);
     });
 
     if(self._xpush._isEventHandler) {
