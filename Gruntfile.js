@@ -57,6 +57,22 @@ module.exports = function(grunt) {
         src: ['test/**/*.js']
       },
     },
+    jsdoc : {
+      basic : {
+        src : ['tasks/**.js', 'tasks/lib/*.js'],
+        options : {
+          destination: 'doc/basic'
+        }
+      },
+      docstrap : {
+        src : ['src/**.js'],
+        options : {
+          destination : 'doc/docstrap',
+            template : "node_modules/ink-docstrap/template",
+            configure : "jsdoc.conf.json"
+        }
+      }
+    },
     watch: {
       src: {
         files: 'src/<%= pkg.name %>.js',
@@ -72,6 +88,13 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
+
+  // Load local tasks.
+  grunt.loadTasks('tasks');
+
+  // Default task.
+  //grunt.registerTask('default', ['jshint', 'test']);
+  grunt.registerTask('docstrap', ['clean','jsdoc:docstrap']);
 
   // Default task.
   grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify']);
