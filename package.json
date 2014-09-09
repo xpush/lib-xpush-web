@@ -15,7 +15,8 @@
     "grunt-contrib-watch": "~0.4.0",
     "grunt-contrib-clean": "~0.4.0",
     "grunt": "~0.4.2",
-    "socket.io-client": ">= 0.9"
+    "socket.io-client": ">= 0.9",
+    "grunt-jsdoc":">= 0.5.7"
   },
   "dependencies": {
     "grunt-cli": "~0.1.13"

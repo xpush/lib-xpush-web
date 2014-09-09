@@ -25,6 +25,15 @@
    * @param {string} appId - application id
    * @param {string} [eventHandler] - session event를 처리하기 위한 함수
    * @param {boolean} [autoInitFlag] - 자동 초기화 여부에 대한 flag
+   * @example
+   * // Create new Xpush Object
+   * var xpush = new Xpush( 'http://stalk-front-s01.cloudapp.net:8000', 'sample' );
+   * @example
+   * // Create new Xpush Object with event Handler
+   * var xpush = new Xpush( 'http://stalk-front-s01.cloudapp.net:8000', 'sample', function (type, data){
+   *   console.log( " type : ", type );
+   *   console.log( " data : ", data );
+   * });
    */
   var XPush = function(host, appId, eventHandler, autoInitFlag){
     if(!host){alert('params(1) must have hostname'); return;}
@@ -78,6 +87,11 @@
    * @param {string} password - Password
    * @param {string} [deviceId=WEB] - Device Id
    * @param {callback} cb - 회원가입 후 수행할 callback function
+   * @example
+   * // Add new user
+   * xpush.signup( 'james', '1234', function(err,data){
+   *   console.log('register success : ' + data);
+   * }); 
    */
   XPush.prototype.signup = function(userId, password, deviceId, cb){
     var self = this;
@@ -103,13 +117,13 @@
    * @param {callback} cb - 로그인 후 수행할 callback function
    * @example
    * 
-   * xpush.login( 'james', '1234', function(){
-   *   console.log('login success');
+   * xpush.login( 'james', '1234', function(err,data){
+   *   console.log('register success : ', data);
    * });
    * @example
    * // login with deviceId
-   * xpush.login( 'james', '1234', 'android', function(){
-   *   console.log('login success');
+   * xpush.login( 'james', '1234', 'android', function(err,data){
+   *   console.log('login success : ', data);
    * });
    */
   XPush.prototype.login = function(userId, password, deviceId, mode, cb){
@@ -154,13 +168,19 @@
   };
 
   /**
-   * 현재 xpush 객체에 userId와 deviceId를 세팅한다.
+   * 현재 xpush 객체에 userId와 deviceId를 세팅한다. session socket이 이미 연결되어 있는 경우만 
    * @name setSessionInfo
    * @memberof Xpush
    * @function
    * @param {string} userId - User Id
-   * @param {string} deviceId - Device Id
+   * @param {string} [deviceId] - Device Id
    * @param {callback} cb - 세팅 후 수행할 callback function
+   * @example
+   * // Set session info
+   * xpush.setSessionInfo( 'james', function(){} );
+   * @example
+   * // Set session info with deviceId
+   * xpush.setSessionInfo( 'james', 'WEB', function(){} );
    */
   XPush.prototype.setSessionInfo = function(userId, deviceId, cb){
     var self = this;
@@ -181,6 +201,9 @@
    * @name logout
    * @memberof Xpush
    * @function
+   * @example
+   * // logout
+   * xpush.logout();
    */
   XPush.prototype.logout = function(){
     var self = this;
@@ -211,12 +234,37 @@
    * @param {string} [channel] - Channel Id
    * @param {Object} [datas] - 추가적인 channel 정보를 위한 JSON
    * @param {callback} cb - 생성 후 수행할 callback function
+   * @example
+   * // create random channel without data
+   * xpush.createChannel(['james', 'notdol'], function(err, data){
+   *   console.log( 'create channel success : ', data);
+   * });
+   * @example
+   * // create a channel without data
+   * xpush.createChannel(['james'], 'channel02', function(err,data){
+   *   console.log( 'create channel success : ', data);
+   * });
+   * @example
+   * // create a channel with data
+   * xpush.createChannel(['james'], 'channel03', {'NM':'james'}, function(err,data){
+   *   console.log( 'create channel success : ', data);
+   * });
    */
   XPush.prototype.createChannel = function(users, channel, datas, cb){
     var self = this;
     var channels = self._channels;
 
-    if(typeof(channel) == 'function' && !datas && !cb){
+    if( arguments.length === 3 ){
+      // users, channel, cb
+      if( typeof(arguments[1]) == 'string' && typeof(arguments[2]) == 'function' ){
+        cb = datas;
+        datas = {};
+      } else if ( typeof(arguments[1]) == 'object' && typeof(arguments[2]) == 'function' ){
+        cb = datas;
+        datas = channel;
+        channel = undefined;
+      }
+    } else if(typeof(channel) == 'function' && !datas && !cb){
       cb = channel; channel = undefined; datas = {};
     }
 
@@ -268,6 +316,16 @@
    * @param {string} channel - Channel Id
    * @param {Object} [userObj] - UserObject( U : userID, D : deviceId )
    * @param {callback} cb - 생성 후 수행할 callback function
+   * @example
+   * // create simple channel without userObject
+   * xpush.createSimpleChannel('channel01', function(){
+   *   console.log( 'create simple channel success' );
+   * });
+   * @example
+   * // create simple channel with userObject
+   * xpush.createSimpleChannel('channel02', {'U':'james','D':'WEB'}, function(){
+   *   console.log( 'create simple channel success' );
+   * });
    */
   XPush.prototype.createSimpleChannel = function(channel, userObj, cb){
     var self = this;
@@ -279,13 +337,16 @@
         if(cb) cb(err);
       }else if ( data.status == 'ok'){
 
+        if( typeof(userObj) == 'function' && !cb ){
+          cb = userObj; userObj = undefined;
+        }
+
         if(userObj){
           self.userId = userObj.U || 'someone';
           self.deviceId = userObj.D || 'WEB';
-        }else{
+        }else {
           self.userId = 'someone';
           self.deviceId = 'WEB';
-          cb = userObj;
         }
 
         ch.info = data.result;
@@ -307,6 +368,11 @@
    * @memberof Xpush
    * @function
    * @param {callback} cb - 조회 후 수행할 callback function
+   * @example
+   * // Get channels
+   * xpush.getChannels(function(err,datas){
+   *   console.log( 'channels : ' + datas );
+   * });
    */
   XPush.prototype.getChannels = function(cb){
     var self = this;
@@ -336,6 +402,11 @@
    * @param {string} channel - Channel Id
    * @param {Object} query - mongo DB query 형태로 된 JSON
    * @param {callback} cb - 수정 후 수행할 callback function
+   * // update channel
+   * @example
+   * xpush.updateChannel( 'channel02', { $set:{'DT':{'NM':'notdol1'}}}, function(err, result){
+   *   console.log( 'result : ', result );
+   * });
    */
   XPush.prototype.updateChannel = function(channel, query, cb){
     var self = this;
@@ -354,6 +425,11 @@
    * @function
    * @param {Object} data - ( 'key': '' )
    * @param {callback} cb - 조회 후 수행할 callback function
+   * @example
+   * // Retrieve channels that start with channel
+   * xpush.getChannelsActive( {'key':'channel*'}, function(results){
+   *   console.log( 'results : ', results );
+   * });
    */
   XPush.prototype.getChannelsActive = function(data, cb){ //data.key(option)
     var self = this;
@@ -370,6 +446,8 @@
    * @function
    * @param {string} channel - Channel Id
    * @return {Object} return Channel Object
+   * @example
+   * var channel01 = xpush.getChannel('channel01');
    */
   XPush.prototype.getChannel = function(channel){
     var self = this;
@@ -388,6 +466,10 @@
    * @function
    * @param {string} channel - Channel Id
    * @param {callback} cb - 조회 후 수행할 callback function
+   * @example
+   * xpush.getChannelData( channel, function(err,data){
+   *   console.log( 'retrieve channel success : ', data);
+   * });
    */
   XPush.prototype.getChannelData = function(channel, cb){
     var self = this;
@@ -404,6 +486,10 @@
    * @param {string} channel - Channel Id
    * @param {Object} param - JSON Data ( U, DT )
    * @param {callback} cb - 합류 후 수행할 callback function
+   * @example
+   * xpush.joinChannel( 'channel03', {'U':['notdol']}, function(result){
+   *   console.log( 'result : ', result);
+   * });
    */
   XPush.prototype.joinChannel = function(channel, param, cb){
     var self = this;
@@ -421,6 +507,10 @@
    * @function
    * @param {string} channel - Channel Id
    * @param {callback} cb - 나간 후 수행할 callback function
+   * @example
+   * xpush.exitChannel( 'channel03', function(err, result){
+   *   console.log( 'result : ', result);
+   * });
    */
   XPush.prototype.exitChannel = function(channel, cb){
     var self = this;
@@ -435,6 +525,10 @@
    * @function
    * @param {string} channel - Channel Id
    * @param {callback} cb - 조회 후 수행할 callback function
+   * @example
+   * xpush._getChannelAsync( 'channel03', function(err, result){
+   *   console.log( 'result : ', result);
+   * });
    */
   XPush.prototype._getChannelAsync = function(channel, cb){
     var self = this;
@@ -466,6 +560,15 @@
    * @param {Object} inputObj - JSON Objec( 'file' : file DOM Oject for upload, 'type' : '' )
    * @param {function} fnPrg - 업로도 진행 상황을 보여주기 위한 function
    * @param {callback} fnCallback - 업로드 완료 후 수행할 callback function
+   * @example
+   * var fileObj = document.getElementById('file');
+   * xpush.uploadStream( 'channel03', {
+   *   file: fileObj
+   * }, function(data, idx){
+   *   console.log( 'progress : ' + data );
+   * }, function(data,idx){
+   *   console.log( 'upload result : ' + data );
+   * });
    */
   XPush.prototype.uploadStream = function(channel, inputObj, fnPrg, fnCallback){
     var self = this;
@@ -519,6 +622,15 @@
    * @param {Object} inputObj - JSON Objec( 'type' : '', 'name' : Original File name )
    * @param {function} fnPrg - 업로도 진행 상황을 보여주기 위한 function
    * @param {callback} fnCallback - 업로드 완료 후 수행할 callback function 
+   * @example
+   * xpush.uploadFile('channelId', 'content://media/external/images/media/636',
+   * {type : 'image', name:'image.png' },
+   * function ( data ){
+   *   console.log( data );
+   * },
+   * function (data){
+   *   console.log( data.response );
+   * });
    */
   XPush.prototype.uploadFile = function(channel, fileUri, inputObj, fnPrg, fnCallback){
     var self = this;
@@ -579,6 +691,8 @@
    * @param {string} channel - Channel Id
    * @param {string} fileName - 업로드후 return 받은 파일의 name
    * @return {string} 파일을 다운로드 받을 수 있는 url
+   * @example
+   * var url = xpush.getFileUrl( 'channel03', data.result.name )
    */
   XPush.prototype.getFileUrl = function(channel, fileName){
 
@@ -662,6 +776,8 @@
    * @function
    * @param {string} channel - Channel Id
    * @return {boolean}
+   * @example
+   * var isExist = xpush.isExistChannel('channel03');
    */
   XPush.prototype.isExistChannel = function(channel){
     var self = this;
@@ -678,8 +794,12 @@
    * @name getUserList
    * @memberof Xpush
    * @function
-   * @param {Object} params - Optional param for search user.
+   * @param {Object} [params] - param for search user.
    * @param {function} cb - 조회 후 수행할 callback function
+   * @example
+   * xpush.getUserList( {'page':{'num':1,'size':10} },function(err, users){
+   *   console.log( users );
+   * });
    */
   XPush.prototype.getUserList = function(params,  cb){
     if(typeof(params) == 'function'){
@@ -741,7 +861,7 @@
    * @param {string} name - EventName
    * @param {Object} data - String or JSON object to Send
    * @example
-   * xpush.send( 'ch01', 'ev01', {'MG':'Hello world'} );
+   * xpush.send( 'ch01', 'message', {'MG':'Hello world'} );
    */
   XPush.prototype.send = function(channel, name, data){
     var self = this;
@@ -845,7 +965,7 @@
    * @param {string} userId - 삭제할 user의 ID
    * @param {callback} cb - 삭제 후 수행할 callback function
    * @example
-   * xpush.removeUserFromGroup( 'james', ['notdol'], function( err, result ){
+   * xpush.removeUserFromGroup( 'james', 'notdol', function( err, result ){
    *   console.log( result );
    * )};
    */
@@ -949,15 +1069,6 @@
     if( self.autoInitFlag ){
       self.getChannels(function(err,data){
         self.channelNameList = data;
-        if(cb) cb();
-      });
-    } else {
-      if(cb) cb();
-    }
-
-    // if `autoInitFlag` is true, get unread messages
-    if( self.autoInitFlag ){
-      socket.on('connect',function(){
         self.getUnreadMessage(function(err, data){
           if(data && data.length > 0 ){
             for(var i = data.length-1 ; i >= 0; i--){
@@ -971,11 +1082,14 @@
               var t = self.receiveMessageStack.shift();
               self.emit.apply(self, t );
             }
+            if(cb) cb();
           }else{
-            self.isExistUnread = false;
+            if(cb) cb();
           }
         });
       });
+    } else {
+      if(cb) cb();
     }
 
     socket.on('disconnect',function(){
@@ -1100,6 +1214,10 @@
    * @function
    * @param {string} event key
    * @param {function} function
+   * @example
+   * xpush.on( 'message', function(channel, name, data){
+   *   console.log( channel, name, data );
+   * });
    */
   XPush.prototype.on = function(event, fct){
     var self = this;
@@ -1154,6 +1272,10 @@
    * @function
    * @param {string} event key
    * @param {function} function
+   * @example
+   * xpush.off( 'message', function(channel, name, data){
+   *   console.log( channel, name, data );
+   * });
    */
   XPush.prototype.off = function(event, fct){
     var self = this;
@@ -1169,6 +1291,8 @@
    * @function
    * @param {string} event key
    * @param {function} function
+   * @example
+   * xpush.clearEvent();
    */
   XPush.prototype.clearEvent = function(){
     var self = this;
@@ -1178,6 +1302,7 @@
   /**
    * event stack에 등록되어 있는 함수를 호출한다.
    * 읽지 않은 메세지가 존재하면, 초기화 중인 상태이므로 message가 오더라도 해당 event의 function을 즉시 발생시키지 않고 stack에 쌓는다.
+   * @private
    * @memberof Xpush
    * @function
    * @param {string} event key

@@ -21,7 +21,7 @@ module.exports = function(grunt) {
         stripBanners: true
       },
       dist: {
-        src: ['src/<%= pkg.name %>.js', 'node_modules/socket.io-client/dist/socket.io.js'],
+        src: ['src/<%= pkg.name %>.js', 'node_modules/socket.io-client/socket.io.js'],
         dest: 'dist/<%= pkg.name %>.js'
       },
     },
@@ -61,14 +61,14 @@ module.exports = function(grunt) {
       basic : {
         src : ['tasks/**.js', 'tasks/lib/*.js'],
         options : {
-          destination: 'doc/basic'
+          destination: 'dist/doc/basic'
         }
       },
       docstrap : {
-        src : ['src/**.js'],
+        src : ['src/xpush.js'],
         options : {
-          destination : 'doc/docstrap',
-            template : "node_modules/ink-docstrap/template",
+          destination : 'dist/doc',
+            template : "node_modules/grunt-jsdoc/node_modules/ink-docstrap/template",
             configure : "jsdoc.conf.json"
         }
       }
@@ -94,9 +94,11 @@ module.exports = function(grunt) {
 
   // Default task.
   //grunt.registerTask('default', ['jshint', 'test']);
-  grunt.registerTask('docstrap', ['clean','jsdoc:docstrap']);
+  grunt.registerTask('docstrap', ['jsdoc:docstrap']);
 
   // Default task.
   grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify']);
+
+  grunt.registerTask('min', ['clean', 'concat:dist', 'uglify']);
 
 };

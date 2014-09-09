@@ -6,34 +6,146 @@
 <body>
 ^^;<br>
 
-<script src="../dist/xpush.min.js"></script>  
+<script src="../dist/xpush.js"></script>
+<sciprt src="http://messenger.stalk.io:8080/lib/socketio/socket.io-stream.js"/></script>
 <script type="text/javascript">
 // appId = gJlL7sFlO , appNm = notdol
 
-var xpush1 = new XPush('http://channel-a.stalk.io:8000', 'ABCDE_APP', 'CH001');
+var xpush = new XPush('http://stalk-front-s01.cloudapp.net:8000', 'sample', function(){}, false);
 
-xpush1.join('SESSION_UNIQUE_ID', function (data) {
-  xpush1.send('event01', {from:'xpush1', comments:'Hello there.'});
+/**
+xpush.signup( 'notdol', '1234', function(err,data){
 });
 
-xpush1.message('event01', function (data){
-  console.log('event01 : ' + data.from + '-' + data.comments);
+xpush.signup( 'james', '1234', function(err,data){
+  console.log('register success : ', data);
+
+	xpush.login( 'james', '1234', function(err,data){
+	  console.log('login success : ', data);
+	  test02( xpush );
+	  //test01(xpush1);
+	  //test04(xpush);
+	});
+});
+*/
+
+xpush.login( 'james', '1234', function(err,data){
+  console.log('login success : ', data);
+  test09( xpush );
 });
 
-xpush1.message('event02', function (data){
-  console.log('event02 : ' + data.from + '-' + data.comments);
-});
+var test01 = function(xpushObject){
+	xpushObject.createChannel(['james', 'notdol'], function(err,channel){
+		console.log( 'create channel success : ', channel);
 
-xpush1.message('event03', function (data){
-  console.log('event03 : ' + data.from + '-' + data.comments);
-});
+		xpushObject.on( 'message', function(channel, name, data){
+			console.log( channel, name, data );
+		});
 
-var xpush2 = new XPush('http://channel-a.stalk.io:8000', 'ABCDE_APP', 'CH002');
-xpush2.join('SESSION_UNIQUE_ID_2', function (data) {
-  xpush1.send('event02', {from:'xpush2', comments:'somthing from the other channel.'});
-});
+		xpushObject.send( channel, 'message', 'abc' );
+	});
+};
 
+var test02 = function(xpushObject){
+
+	xpushObject.createChannel(['james'], 'channel03', {'NM':'notdol'}, function(err,channel){
+		console.log( 'create channel success : ', channel);
+
+		setTimeout( function(){
+			xpushObject.joinChannel( 'channel03', {'U':['notdol']}, function(result){
+				console.log( 'result : ', result);
+				xpushObject.exitChannel( 'channel03', function(err, result){
+					console.log( 'exit : ', result);
+				});
+			});
+		}, 2000 );
+	});
+
+	/**
+	xpushObject.joinChannel( 'channel03', {'U':['notdol']}, function(result){
+		console.log( 'result : ', result);
+	});
+  */
+
+	/**
+	xpushObject.createChannel(['notdol'], {'NM':'notdol'}, function(err,channel){
+		console.log( 'create channel success : ', channel);
+		xpushObject.getChannelData( channel, function(err,data){
+			console.log( 'retrieve channel success : ', data);
+			xpushObject.updateChannel( channel, { $set:{'DT':{'NM':'notdol1'}}}, function(err, result){
+				console.log( 'result : ', result );
+			});
+		});
+	});
+	*/
+};
+
+var test03 = function(xpushObject){
+	xpushObject.getChannels(function(err,datas){
+		console.log( datas );
+	});
+};
+
+var test04 = function(xpushObject){
+	var xpushObject = new XPush('http://stalk-front-s01.cloudapp.net:8000', 'sample02');
+
+	xpushObject.createSimpleChannel('channel02', function(){
+		console.log( 'create simple channel success' );
+
+		xpushObject.on( 'message', function(channel, name, data){
+			console.log( 'channel02', name, data );
+		});
+
+		xpushObject.send( 'channel02', 'message', 'bcd2' );
+	});
+};
+
+var test05 = function(xpushObject){
+	var xpushObject = new XPush('http://stalk-front-s01.cloudapp.net:8000', 'sample02');
+
+	xpushObject.createSimpleChannel('channel01', {'U':'james','D':'WEB'}, function(){
+		console.log( 'create simple channel success' );
+
+		xpushObject.on( 'message', function(channel, name, data){
+			console.log( 'channel01', name, data );
+		});
+
+		xpushObject.send( 'channel01', 'message', 'bcd1' );
+		console.log( "channel01 : ", xpushObject.getChannel( 'channel01' ) );
+	});
+};
+
+var test06 = function(xpushObject){
+	xpushObject.getChannelsActive({'key':'channel*'}, function(channels){
+		console.log( 'getChannelsActive success : ', channels);
+	});
+};
+
+var test07 = function(xpushObject){
+	xpushObject.joinChannel({'key':'channel*'}, function(channels){
+		console.log( 'getChannelsActive success : ', channels);
+	});
+};
+
+var test08 = function(){
+	var fileObj = document.getElementById('file');
+	xpush.uploadStream( 'channel03', {
+		file: fileObj
+	}, function(data, idx){
+		console.log( 'progress : ' + data );
+	}, function(data,idx){
+		console.log( 'upload result : ' + data );
+	});
+};
+
+var test09 = function(xpushObject){
+	xpushObject.getUserList( {'page':{'num':1,'size':10}},function(err, users){
+		console.log( users );
+	});
+};
 </script>
 
+<input type="file" id="file" />
+<button value='upload' onclick="test08();">upload</button/>
 </body>
 </html>
