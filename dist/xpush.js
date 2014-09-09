@@ -241,12 +241,12 @@
    * });
    * @example
    * // create a channel without data
-   * xpushObject.createChannel(['james'], 'channel02', function(err,data){
+   * xpush.createChannel(['james'], 'channel02', function(err,data){
    *   console.log( 'create channel success : ', data);
    * });
    * @example
    * // create a channel with data
-   * xpushObject.createChannel(['james'], 'channel03', {'NM':'james'}, function(err,data){
+   * xpush.createChannel(['james'], 'channel03', {'NM':'james'}, function(err,data){
    *   console.log( 'create channel success : ', data);
    * });
    */
@@ -487,8 +487,8 @@
    * @param {Object} param - JSON Data ( U, DT )
    * @param {callback} cb - 합류 후 수행할 callback function
    * @example
-   * xpush.joinChannel( channel, function(err,data){
-   *   console.log( 'retrieve channel success : ', data);
+   * xpush.joinChannel( 'channel03', {'U':['notdol']}, function(result){
+   *   console.log( 'result : ', result);
    * });
    */
   XPush.prototype.joinChannel = function(channel, param, cb){
@@ -507,6 +507,10 @@
    * @function
    * @param {string} channel - Channel Id
    * @param {callback} cb - 나간 후 수행할 callback function
+   * @example
+   * xpush.exitChannel( 'channel03', function(err, result){
+   *   console.log( 'result : ', result);
+   * });
    */
   XPush.prototype.exitChannel = function(channel, cb){
     var self = this;
@@ -521,6 +525,10 @@
    * @function
    * @param {string} channel - Channel Id
    * @param {callback} cb - 조회 후 수행할 callback function
+   * @example
+   * xpush._getChannelAsync( 'channel03', function(err, result){
+   *   console.log( 'result : ', result);
+   * });
    */
   XPush.prototype._getChannelAsync = function(channel, cb){
     var self = this;
@@ -552,6 +560,15 @@
    * @param {Object} inputObj - JSON Objec( 'file' : file DOM Oject for upload, 'type' : '' )
    * @param {function} fnPrg - 업로도 진행 상황을 보여주기 위한 function
    * @param {callback} fnCallback - 업로드 완료 후 수행할 callback function
+   * @example
+   * var fileObj = document.getElementById('file');
+   * xpush.uploadStream( 'channel03', {
+   *   file: fileObj
+   * }, function(data, idx){
+   *   console.log( 'progress : ' + data );
+   * }, function(data,idx){
+   *   console.log( 'upload result : ' + data );
+   * });
    */
   XPush.prototype.uploadStream = function(channel, inputObj, fnPrg, fnCallback){
     var self = this;
@@ -605,6 +622,15 @@
    * @param {Object} inputObj - JSON Objec( 'type' : '', 'name' : Original File name )
    * @param {function} fnPrg - 업로도 진행 상황을 보여주기 위한 function
    * @param {callback} fnCallback - 업로드 완료 후 수행할 callback function 
+   * @example
+   * xpush.uploadFile('channelId', 'content://media/external/images/media/636',
+   * {type : 'image', name:'image.png' },
+   * function ( data ){
+   *   console.log( data );
+   * },
+   * function (data){
+   *   console.log( data.response );
+   * });
    */
   XPush.prototype.uploadFile = function(channel, fileUri, inputObj, fnPrg, fnCallback){
     var self = this;
@@ -665,6 +691,8 @@
    * @param {string} channel - Channel Id
    * @param {string} fileName - 업로드후 return 받은 파일의 name
    * @return {string} 파일을 다운로드 받을 수 있는 url
+   * @example
+   * var url = xpush.getFileUrl( 'channel03', data.result.name )
    */
   XPush.prototype.getFileUrl = function(channel, fileName){
 
@@ -748,6 +776,8 @@
    * @function
    * @param {string} channel - Channel Id
    * @return {boolean}
+   * @example
+   * var isExist = xpush.isExistChannel('channel03');
    */
   XPush.prototype.isExistChannel = function(channel){
     var self = this;
@@ -764,8 +794,12 @@
    * @name getUserList
    * @memberof Xpush
    * @function
-   * @param {Object} params - Optional param for search user.
+   * @param {Object} [params] - param for search user.
    * @param {function} cb - 조회 후 수행할 callback function
+   * @example
+   * xpush.getUserList( {'page':{'num':1,'size':10} },function(err, users){
+   *   console.log( users );
+   * });
    */
   XPush.prototype.getUserList = function(params,  cb){
     if(typeof(params) == 'function'){
@@ -1491,7 +1525,6 @@
    */
   Connection.prototype.joinChannel = function(param, cb){
     var self = this;
-    console.log( self._socket.connected );
     if(self._socket.connected){
       self._socket.emit('join', param, function( data ){
         cb( data );
