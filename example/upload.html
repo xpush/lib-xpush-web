@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>File Upload Example</title>
+
+  <!-- Bootstrap and jquery -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+<!-- xpush -->
+<script src="http://xpush.github.io/lib/dist/xpush.js"></script>
+
+<script type="text/javascript" src="http://localhost:4000/lib/dist/socket.io-stream.js"></script>
+
+<style>
+  .img-thumbnail {
+    margin: 10px;
+  }
+</style>
+
+<script type="text/javascript">
+// Create new xpush
+var xpush = new XPush('http://demo.stalk.io:8000', 'demo');
+
+$(document).ready( function(){
+  // channel02 을 생성합니다.
+  xpush.createSimpleChannel('channel02', function(){
+    // 생성 후에 success 메시지를 보여줍니다.
+    var html =  '<strong>Well done!</strong> Create simple channel success';
+    $( "#danger" ).hide()
+    $( "#success" ).html(html);
+    $( "#success" ).show();
+
+  });
+});
+
+
+var upload = function(){
+  // File Document Element 객체를 가져옵니다.
+  var inputObj = document.getElementById("uploadFile");
+
+  // progressbar 를 가져옵니다.
+  var progressbar = $("#progress_bar");
+  var progressdiv = $("#progress_div");
+
+
+ // Validation을 추가합니다.
+  if( inputObj.value === '' ){
+    var html =  '<strong>Upload Failed!</strong> Select file.';
+    $( "#success" ).hide();
+    $( "#danger" ).html(html);
+    $( "#danger" ).show();
+
+    return;
+  }
+
+  // file의 type이 image type인지 체크합니다.
+  var file = inputObj.files[0];
+  if( file.type.indexOf( "image" ) < 0 ){
+
+    var html =  '<strong>Upload Failed!</strong> Select image only';
+    $( "#success" ).hide();
+    $( "#danger" ).html(html);
+    $( "#danger" ).show();
+
+    inputObj.value = "";
+    return;
+  }
+
+  // xpush의 uploadStream 함수를 사용하여 파일을 업로드합니다.
+  xpush.uploadStream( 'channel02', {
+    file: inputObj, type : 'image'
+  }, function(data, idx){
+    inputObj.value = "";
+
+    // progress 정보를 받아 bar 형태로 보여줍니다.
+    var progress = data+"%";
+    progressbar.html( progress );
+    progressbar.css( { width : progress } );
+    progressdiv.show();
+  }, function(data,idx){
+
+    inputObj.value = "";
+
+    // thumbnail image를 다운로드 받을 수 있는 URL을 얻어 옵니다.
+    var thumbnailUrl = xpush.getFileUrl('channel02', data.result.tname );
+    // original image를 다운로드 받을 수 있는 URL을 얻어 옵니다.
+    var imageUrl = xpush.getFileUrl('channel02', data.result.name );
+
+    var progress = "0%";
+    progressbar.html( progress );
+    progressbar.css( { width : progress } );
+    progressdiv.hide();
+
+    // 업로드결과를 화면에 보여줍니다.
+    var html =  '<strong>Upload Success!</strong> ' + imageUrl;
+    $( "#danger" ).hide();
+    $( "#success" ).html(html);
+    $( "#success" ).show();
+
+    // thumbnail image를 보여주기 위한 template 객체를 복사하여 새로운 Document Element을 생성합니다.
+    var newImage = $( "#template" ).clone();
+
+    // 새로 만든 Document Element 객체를 수정합니다.
+    newImage.attr( "id", "template_"+ Date.now() );
+    newImage.attr( "src", thumbnailUrl );
+    newImage.bind( "click", function(){
+      var popup = window.open(imageUrl, '_blank', 'location=no');
+    });
+
+    // 새로 만든 Document Element 객체를 지정된 영역에 추가합니다.
+    newImage.appendTo( "#list" );
+    newImage.show();
+  });
+};
+</script>
+</head>
+
+<body>
+<div class="container">
+  
+<div class="row" style="margin-top:20px;">
+  <div class="col-sm-12">
+    <div class="jumbotron">
+      <h1>File Upload Example</h1>
+      <p class="lead">Upload image file with simple channel</p>
+      <p><a href="https://github.com/xpush/lib-xpush-web/blob/master/example/upload.html" target="_blank" class="btn btn-primary btn-lg" role="button">View source from github</a></p>
+    </div>
+    <div id="success" class="alert alert-success" role="alert" style="display:none"></div>
+    <div id="danger" class="alert alert-danger" role="alert" style="display:none"></div>
+
+    <div style="display:flex;">
+      <input class="form-control" name="uploadFile" id="uploadFile" type="file" />
+      <button type="submit" id="form-button" class="btn btn-primary" style="margin-left:10px;" onclick="upload();">
+        Upload
+      </button>
+    </div>
+    <span class="help-block">Select image to upload. uploaded images will be displayed in under area</span>
+
+    <div class="row">
+      <div class="col-sm-8">
+        <div id="progress_div" class="progress" style="width:200px; display:none;">
+          <div id="progress_bar" class="progress-bar" style="width: 0%;"></div>
+        </div>
+
+        <h2>Uploaded images</h2>
+        <div style="display:flex;" id="list">
+        </div>
+        <img id="template" class="img-thumbnail" style="display:none">
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
