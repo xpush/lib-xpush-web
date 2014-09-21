@@ -24,6 +24,10 @@ module.exports = function(grunt) {
         src: ['src/<%= pkg.name %>.js', 'node_modules/socket.io-client/socket.io.js'],
         dest: 'dist/<%= pkg.name %>.js'
       },
+      copy: {
+        src: ['src/<%= pkg.name %>.js'],
+        dest: 'dist/<%= pkg.name %>-client.js'
+      }
     },
     uglify: {
       options: {
@@ -33,6 +37,10 @@ module.exports = function(grunt) {
         src: '<%= concat.dist.dest %>',
         dest: 'dist/<%= pkg.name %>.min.js'
       },
+      copy: {
+        src: ['src/<%= pkg.name %>.js'],
+        dest: 'dist/<%= pkg.name %>-client.min.js'
+      }
     },
     qunit: {
       files: ['test/**/*.html']
@@ -99,6 +107,6 @@ module.exports = function(grunt) {
   // Default task.
   grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify']);
 
-  grunt.registerTask('min', ['clean', 'concat:dist', 'uglify']);
+  grunt.registerTask('min', ['clean', 'concat:copy', 'concat:dist', 'uglify:copy', 'uglify:dist']);
 
 };

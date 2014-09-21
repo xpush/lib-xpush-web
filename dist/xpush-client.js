@@ -1,3 +1,6 @@
+/*! xpush javascript library - v0.1.0 - 2014-09-21
+* https://xpush.github.io
+* Copyright (c) 2014 John Kim; Licensed MIT */
 (function(){
 
   var XPush = (function() {
