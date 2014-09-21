@@ -1,18 +1,17 @@
 var express = require('express');
 var path = require('path');
+var io = require('socket.io-client');
 var app = express();
 
 app.use( express.static( path.join( __dirname, 'example') ) ) ;
 
 
-var XPush = require('./example/xpush-client');
+var XPush = require('./dist/xpush-client');
 
-var xpush = new XPush('http://demo.stalk.io:8000', 'sample');
+var xpush = new XPush('http://demo.stalk.io:8000', 'demo');
 
-setTimeout( function (){
-	xpush.signup( 'james1', '1234', function(err,data){
-  	console.log('register success : ', data);
-	}); 
-}, 1000);
+xpush.createSimpleChannel('channel-dashboard', function(){
+
+});
 
 app.listen(9999);
