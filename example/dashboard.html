@@ -39,7 +39,7 @@
         duration: 1000,
         easing: 'out'
       },
-      legend: 'none'
+      legend: { position: 'bottom' }
     };
 
     function getTime(){
@@ -230,14 +230,17 @@
     
     var mem01;
     var mem02;
+    var memFormat;
     var xpush;
+
+    var u01 = 0;
+    var u02 = 0;
     function initialize(){
       xpush = new XPush('http://demo.stalk.io:8000', 'demo');
       xpush.createSimpleChannel('channel-dashboard', function(){
         xpush.send('channel-dashboard', 'message', 'STOP_MONITOR' );
         // `message` event로 들어오는 data를 받아 화면에 출력합니다.
         xpush.on( 'message', function(channel, name, data){
-          var time = getTime();
 
           if( data.type && data.type == 'tps' ) {
             viewParticle( data.json );
@@ -245,24 +248,15 @@
             cpuDataTable.setValue(sorts[data.json.H], 1, Math.round(data.json.C));
             cpuChart.draw(cpuDataTable, options);
 
-            var memFormat;
-
             if( 0 == sorts[data.json.H] ){
               memFormat = getNumberFormatString( Number( data.json.M ), false );
               mem01 = getNumberFormat( Number( data.json.M ), memFormat);
+              u01 = data.json.U;
             } else if( 1 == sorts[data.json.H]  ){
               memFormat = getNumberFormatString( Number( data.json.M ), false );
               mem02 = getNumberFormat( Number( data.json.M ), memFormat);
+              u02 = data.json.U;
             }
-
-            memOptions.vAxis.format = memFormat;
-            memDataTable.addRow( [time, mem01, mem02] );
-
-            if( memDataTable.getNumberOfRows() > 5 ) {
-              memDataTable.removeRow( memDataTable.getNumberOfRows() -6 );
-            }
-
-            memChart.draw(memDataTable,memOptions);
           }
         });
       });
@@ -270,33 +264,55 @@
     initialize();
 
     var startFlag = false;
+    var monitor;
     var btnToggle = document.getElementById( "btnToggle" );
-    function toggleMonitor(){
+
+    var drawMemChart = function(){
+      monitor = setInterval( function() {
+        var time = getTime();
+        memOptions.vAxis.format = memFormat;
+        memDataTable.addRow( [time, mem01, mem02] );
+
+        if( memDataTable.getNumberOfRows() > 5 ) {
+          memDataTable.removeRow( memDataTable.getNumberOfRows() -6 );
+        }
+
+        viewParticle( [{ 'H':'server-01','V':u01 },{ 'H':'server-02','V':u02 }]);
+
+        memChart.draw(memDataTable,memOptions);
+      }, 5000 );
+    };
+
+    var toggleMonitor = function(){
       if( !startFlag  ){
         xpush.send('channel-dashboard', 'message', 'START_MONITOR' );
         startFlag = true;
         btnToggle.className = "btn btn-danger" ;
         btnToggle.innerHTML = "Off";
+        drawMemChart();
       } else {
         xpush.send('channel-dashboard', 'message', 'STOP_MONITOR' );
         startFlag = false;
         btnToggle.className = "btn btn-primary" ;
         btnToggle.innerHTML = "On";
+        if( monitor ){
+          clearInterval( monitor );
+        }
       }
     }
   </script>
 
   <script type="text/javascript">
-    var w = 500,
+    var w = 400,
       h = 250,
       z = d3.scale.category10();
-    var cw = 170;
+    var cw = 200;
 
     var svg = d3.select("#transaction").append("svg:svg")
     .attr("width", w)
     .attr("height", h);
     
-    var data = [0,1,2];
+    var data = [0,1];
     var sel = svg.selectAll("rect").data(data).enter();
     sel.append("rect")
     .attr("id", function(d) {return "rect_"+serviceNames[d];})
@@ -304,12 +320,12 @@
     .attr("stroke", "#999" )
     .attr("width", 100)
     .attr("height", 40)
-    .attr("x", function(d) {return ( d * cw ) + 30;} )
+    .attr("x", function(d) {return ( d * cw ) + 50;} )
     .attr("y", 210);
     
     sel.append("svg:text")
     .attr("fill", "black")
-    .attr("x", function(d) {return ( d * cw ) + 80;})
+    .attr("x", function(d) {return ( d * cw ) + 100;})
     .attr("y", 235)
     .attr("text-anchor", "middle")
     .style("font-size", "12px")
@@ -318,7 +334,7 @@
     sel.append("image")
     .attr("id", function(d) {return "image"+d;})
     .attr( "xlink:href", "assets/0.png" )
-    .attr("x", function(d) {return ( d * cw ) + 35;} )
+    .attr("x", function(d) {return ( d * cw ) + 55;} )
     .attr("y", 80 )
     .attr("width", 100)
     .attr("height", 100)
@@ -397,7 +413,7 @@
 
       var totalTps = 0;
       for (var inx = 0, len = json.length; inx < len ; inx ++){
-        var val = json[inx].value;
+        var val = json[inx].V;
         totalTps = plus( totalTps, Number( val ) );
         var sort = sorts[json[inx].H];
         runHorse( val, sort );
@@ -433,7 +449,7 @@
     function setTotal( totalTps ){
       svg.append("svg:text")
       .attr("fill", "#000")
-      .attr("x", 290 )
+      .attr("x", 250 )
       .attr("y", 65)
       .attr("text-anchor", "end")
       .style("font-size", "30px")
