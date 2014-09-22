@@ -4,7 +4,6 @@
 (function(){
 
   var XPush = (function() {
-    var http, io;
     if (typeof module !== 'undefined' ) {
       http = require('http');
       io = require('socket.io-client');
