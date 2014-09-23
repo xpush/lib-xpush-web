@@ -325,8 +325,7 @@
       for( var key in json ){
         var data = json[key];
         var liId = data.S.replace( ".", "" );
-
-        console.log( $( "#template_" + liId).length );        
+        
         if( $( "#template_" + data.S ).length != 0 ){
           var site = $( "#template_" + liId ).eq(0);
           site.children( "span:first" ).text( data.C );
