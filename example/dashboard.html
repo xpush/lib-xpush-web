@@ -7,11 +7,18 @@
         fill: none;
         stroke-width: 1.5px;
     }
+
+    #chart_cpu {
+      width: 400px;
+      height: 200px;
+      margin: 0px auto;
+    }
   </style>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
   <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js"></script>
 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="http://xpush.github.io/lib/dist/xpush.js"></script>
   <script type="text/javascript">
     google.load("visualization", "1", {packages:["gauge","corechart"]});
@@ -25,7 +32,7 @@
     var memDataTable;
 
     var memOptions = {
-      width : "100%",
+      width : "80%",
       min : 0,
       vAxis:{
         format : "#,###",
@@ -104,15 +111,15 @@
     function drawChart() {
       cpuDataTable = google.visualization.arrayToDataTable([
         ['Label', 'Value'],
-        ['server-01', 0],
-        ['server-02', 0],
+        ['stalk-front-c01', 0],
+        ['stalk-front-c02', 0],
       ]);
 
       memDataTable = new google.visualization.DataTable();
 
       memDataTable.addColumn('string', 'Time');
-      memDataTable.addColumn('number', 'server-01');
-      memDataTable.addColumn('number', 'server-02');
+      memDataTable.addColumn('number', 'stalk-front-c01');
+      memDataTable.addColumn('number', 'stalk-front-c02');
 
       options = {
         width: 400, height: 200,
@@ -126,14 +133,18 @@
 
       memChart = new google.visualization.LineChart(document.getElementById('chart_mem'));
       memChart.draw(memDataTable, memOptions);
+
+      window.onresize = function(){
+        memChart.draw(memDataTable, memOptions);
+      };      
     }
   </script>
 </head>
 <body>
-  <div class="container">
-    <div class="row" style="margin-top:20px;">
-      <div class="span12">
-        <!--PAGE CONTENT BEGINS-->
+  <div class="container" style="margin:20px;">
+    <div class="row">
+      <div >
+        <!--PAGE CONTENT BEGINS--> 
         <div class="alert alert-block alert-success">
 
           <i class="icon-ok green"></i>
@@ -154,7 +165,7 @@
               </div>
 
               <div class="panel-body">
-                <div id="chart_cpu" style="width: 400px; height: 200px;"></div>                
+                <div id="chart_cpu" ></div>               
               </div>
             </div>
           </div>
@@ -187,6 +198,28 @@
               </div>
             </div>
           </div>
+
+          <div class="col-sm-6">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h4 class="lighter">
+                  <i class="icon-signal"></i>Site Ranking : Active Users
+                </h4>
+              </div>
+              <div class="panel-body" id="site_body">
+                <div style="min-height:225px;">
+                  <h2>Click button to view</h2>
+                </div>
+              </div>
+              <ul class="list-group" id="site_list" style="display:node;">
+                <li class="list-group-item" style="display:none">
+                  <span class="badge" >0</span><span></span>
+                </li>                
+              </ul>
+              <li class="list-group-item" id="template" style="display:none">
+                <span class="badge" >0</span><span></span>
+              </li>              
+          </div>
         </div>
       </div>
     </div>
@@ -194,10 +227,10 @@
 </body>
 
   <script type="text/javascript">
-    var hostNames = ["server-01","server-02","server-03"];
+    var hostNames = ["stalk-front-c01","stalk-front-c02"];
     var sorts = {};
-    sorts["server-01"] = 0;
-    sorts["server-02"] = 1;
+    sorts["stalk-front-c01"] = 0;
+    sorts["stalk-front-c02"] = 1;
     var serviceNames = ["server01", "server02"];
     
     var CircularQueueItem = function (value, next, back) {
@@ -242,8 +275,8 @@
         // `message` event로 들어오는 data를 받아 화면에 출력합니다.
         xpush.on( 'message', function(channel, name, data){
 
-          if( data.type && data.type == 'tps' ) {
-            viewParticle( data.json );
+          if( data.type && data.type == 'db' ) {
+            drawTopSite( data.json );
           } else if ( data.type && data.type == 'sys' ) {
             cpuDataTable.setValue(sorts[data.json.H], 1, Math.round(data.json.C));
             cpuChart.draw(cpuDataTable, options);
@@ -269,19 +302,49 @@
 
     var drawMemChart = function(){
       monitor = setInterval( function() {
-        var time = getTime();
-        memOptions.vAxis.format = memFormat;
-        memDataTable.addRow( [time, mem01, mem02] );
+        if( mem01 && mem02 ){
+          var time = getTime();
+          memOptions.vAxis.format = memFormat;
+          memDataTable.addRow( [time, mem01, mem02] );
 
-        if( memDataTable.getNumberOfRows() > 5 ) {
-          memDataTable.removeRow( memDataTable.getNumberOfRows() -6 );
+          if( memDataTable.getNumberOfRows() > 5 ) {
+            memDataTable.removeRow( memDataTable.getNumberOfRows() -6 );
+          }
+
+          memChart.draw(memDataTable,memOptions);
         }
 
-        viewParticle( [{ 'H':'server-01','V':u01 },{ 'H':'server-02','V':u02 }]);
-
-        memChart.draw(memDataTable,memOptions);
+        viewParticle( [{ 'H':'stalk-front-c01','V':u01 },{ 'H':'stalk-front-c02','V':u02 }]);
       }, 5000 );
     };
+
+    var topSite = [];
+    var drawTopSite = function( json ){
+      // template을 복사하여 새로운 DOM 객체를 생성합니다..
+      $( "#site_list" ).children().remove();
+      for( var key in json ){
+        var data = json[key];
+        var liId = data.S.replace( ".", "" );
+
+        console.log( $( "#template_" + liId).length );        
+        if( $( "#template_" + data.S ).length != 0 ){
+          var site = $( "#template_" + liId ).eq(0);
+          site.children( "span:first" ).text( data.C );
+          site.children( "span:last" ).text( data.S );
+        } else {
+          var newSite = $( "#template" ).clone();
+
+          // 새로 만든 DOM 객체를 수정합니다.
+          newSite.attr( "id", "template_"+ liId );
+          newSite.children( "span:first" ).text( data.C );
+          newSite.children( "span:last" ).text( data.S );
+
+          // 새로 만든 DOM 객체를 ul DOM에 추가합니다.
+          newSite.appendTo( "#site_list" );
+          newSite.show();
+        }
+      }
+    }
 
     var toggleMonitor = function(){
       if( !startFlag  ){
@@ -290,11 +353,22 @@
         btnToggle.className = "btn btn-danger" ;
         btnToggle.innerHTML = "Off";
         drawMemChart();
+
+        $( "#site_body" ).hide();
+        $( "#site_list" ).show();
       } else {
         xpush.send('channel-dashboard', 'message', 'STOP_MONITOR' );
         startFlag = false;
+        mem01 = 0;
+        mem02 = 0;
+        u01 = 0;
+        u02 = 0;
         btnToggle.className = "btn btn-primary" ;
         btnToggle.innerHTML = "On";
+
+        $( "#site_body" ).show();
+        $( "#site_list" ).hide();
+
         if( monitor ){
           clearInterval( monitor );
         }
@@ -386,7 +460,7 @@
         }         
       }       
       
-      var speed = Math.round( 10000 / val );
+      var speed = Math.round( 50000 / val );
       
       svg.append("svg:text")
       .attr("fill", "#000")
@@ -421,7 +495,7 @@
         if( val != 0 ){           
           // Position X
           var cx = ( sort * cw ) + 85;
-          var until = Math.floor( val / 100 ) * 5 ;
+          var until = Math.floor( val / 200 ) * 5 ;
           
           var jnx = 1;
           if( until < 1 ){
