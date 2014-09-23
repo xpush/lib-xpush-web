@@ -141,424 +141,426 @@
   </script>
 </head>
 <body>
-  <div class="container" style="margin:20px;">
+<div class="container" style="margin:20px;">
+
+<div class="row">
+  <div >
+    <!--PAGE CONTENT BEGINS--> 
+    <div class="alert alert-block alert-success">
+
+      <i class="icon-ok green"></i>
+      Welcome to
+      <strong class="green">
+        XPUSH Dashboard
+      </strong>
+      <button type="button" class="btn btn-primary" id="btnToggle" style="float:right;margin-top:-6px;" onclick="toggleMonitor()">On</button>
+    </div>
+
     <div class="row">
-      <div >
-        <!--PAGE CONTENT BEGINS--> 
-        <div class="alert alert-block alert-success">
-
-          <i class="icon-ok green"></i>
-          Welcome to
-          <strong class="green">
-            XPUSH Dashboard
-          </strong>
-          <button type="button" class="btn btn-primary" id="btnToggle" style="float:right;margin-top:-6px;" onclick="toggleMonitor()">On</button>
-        </div>
-
-        <div class="row">
-          <div class="col-sm-6">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h4 class="lighter">
-                  <i class="icon-signal"></i>CPU Stats
-                </h4>
-              </div>
-
-              <div class="panel-body">
-                <div id="chart_cpu" ></div>               
-              </div>
-            </div>
+      <div class="col-sm-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="lighter">
+              <span class="glyphicon glyphicon-stats"></span>&nbsp;CPU Stats
+            </h4>
           </div>
-          <div class="col-sm-6">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h4 class="lighter">
-                  <i class="icon-signal"></i>Memory Stats
-                </h4>
-              </div>
-              <div class="panel-body">
-                <div id="chart_mem" ></div>  
-              </div>
-            </div>
+
+          <div class="panel-body">
+            <div id="chart_cpu" ></div>               
           </div>
         </div>
-
-        <div class="row">
-
-          <div class="col-sm-6">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h4 class="lighter">
-                  <i class="icon-signal"></i>TPS View
-                </h4>
-              </div>
-              <div class="panel-body">
-                <div id="transaction" style="text-align:center;">
-                </div>
-              </div>
-            </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="lighter">
+              <span class="glyphicon glyphicon-stats"></span>&nbsp;Memory Stats
+            </h4>
           </div>
-
-          <div class="col-sm-6">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h4 class="lighter">
-                  <i class="icon-signal"></i>Site Ranking : Active Users
-                </h4>
-              </div>
-              <div class="panel-body" id="site_body">
-                <div style="min-height:225px;">
-                  <h2>Click button to view</h2>
-                </div>
-              </div>
-              <ul class="list-group" id="site_list" style="display:node;">
-                <li class="list-group-item" style="display:none">
-                  <span class="badge" >0</span><span></span>
-                </li>                
-              </ul>
-              <li class="list-group-item" id="template" style="display:none">
-                <span class="badge" >0</span><span></span>
-              </li>              
+          <div class="panel-body">
+            <div id="chart_mem" ></div>  
           </div>
         </div>
       </div>
     </div>
+
+    <div class="row">
+
+      <div class="col-sm-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="lighter">
+              <span class="glyphicon glyphicon-stats"></span>&nbsp;TPS View
+            </h4>
+          </div>
+          <div class="panel-body">
+            <div id="transaction" style="text-align:center;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="lighter">
+              <span class="glyphicon glyphicon-stats"></span>&nbsp;Site Ranking : Active Users
+            </h4>
+          </div>
+          <div class="panel-body" id="site_body">
+            <div style="min-height:225px;">
+              <h2>Click button to view</h2>
+            </div>
+          </div>
+          <ul class="list-group" id="site_list" style="display:node;">
+            <li class="list-group-item" style="display:none">
+              <span class="badge" >0</span><span></span>
+            </li>                
+          </ul>
+          <li class="list-group-item" id="template" style="display:none">
+            <span class="badge" >0</span><span></span>
+          </li>              
+      </div>
+    </div>
   </div>
+</div>
+
+</div>
 </body>
 
-  <script type="text/javascript">
-    var hostNames = ["stalk-front-c01","stalk-front-c02"];
-    var sorts = {};
-    sorts["stalk-front-c01"] = 0;
-    sorts["stalk-front-c02"] = 1;
-    var serviceNames = ["server01", "server02"];
-    
-    var CircularQueueItem = function (value, next, back) {
-      this.next = next;
-      this.value = value;
-      this.back = back;
-      return this;
-    };
+<script type="text/javascript">
+  var hostNames = ["stalk-front-c01","stalk-front-c02"];
+  var sorts = {};
+  sorts["stalk-front-c01"] = 0;
+  sorts["stalk-front-c02"] = 1;
+  var serviceNames = ["server01", "server02"];
+  
+  var CircularQueueItem = function (value, next, back) {
+    this.next = next;
+    this.value = value;
+    this.back = back;
+    return this;
+  };
 
-    var CircularQueue = function (queueLength) {
-      this._current = new CircularQueueItem(undefined, undefined, undefined);
-      var item = this._current;
-      for (var i = 0; i < queueLength - 1; i++) {
-          item.next = new CircularQueueItem(undefined, undefined, item);
-          item = item.next;
-      }
-      item.next = this._current;
-      this._current.back = item;
-
-      this.push = function (value) {
-        this._current.value = value;
-        this._current = this._current.next;
-      };
-      this.pop = function () {
-        this._current = this._current.back;
-        return this._current.value;
-      };
-      return this;
+  var CircularQueue = function (queueLength) {
+    this._current = new CircularQueueItem(undefined, undefined, undefined);
+    var item = this._current;
+    for (var i = 0; i < queueLength - 1; i++) {
+        item.next = new CircularQueueItem(undefined, undefined, item);
+        item = item.next;
     }
-    
-    var mem01;
-    var mem02;
-    var memFormat;
-    var xpush;
+    item.next = this._current;
+    this._current.back = item;
 
-    var u01 = 0;
-    var u02 = 0;
-    function initialize(){
-      xpush = new XPush('http://demo.stalk.io:8000', 'demo');
-      xpush.createSimpleChannel('channel-dashboard', function(){
-        xpush.send('channel-dashboard', 'message', 'STOP_MONITOR' );
-        // `message` event로 들어오는 data를 받아 화면에 출력합니다.
-        xpush.on( 'message', function(channel, name, data){
+    this.push = function (value) {
+      this._current.value = value;
+      this._current = this._current.next;
+    };
+    this.pop = function () {
+      this._current = this._current.back;
+      return this._current.value;
+    };
+    return this;
+  }
+  
+  var mem01;
+  var mem02;
+  var memFormat;
+  var xpush;
 
-          if( data.type && data.type == 'db' ) {
-            drawTopSite( data.json );
-          } else if ( data.type && data.type == 'sys' ) {
-            cpuDataTable.setValue(sorts[data.json.H], 1, Math.round(data.json.C));
-            cpuChart.draw(cpuDataTable, options);
+  var u01 = 0;
+  var u02 = 0;
+  function initialize(){
+    xpush = new XPush('http://demo.stalk.io:8000', 'demo');
+    xpush.createSimpleChannel('channel-dashboard', function(){
+      xpush.send('channel-dashboard', 'message', 'STOP_MONITOR' );
+      // `message` event로 들어오는 data를 받아 화면에 출력합니다.
+      xpush.on( 'message', function(channel, name, data){
 
-            if( 0 == sorts[data.json.H] ){
-              memFormat = getNumberFormatString( Number( data.json.M ), false );
-              mem01 = getNumberFormat( Number( data.json.M ), memFormat);
-              u01 = data.json.U;
-            } else if( 1 == sorts[data.json.H]  ){
-              memFormat = getNumberFormatString( Number( data.json.M ), false );
-              mem02 = getNumberFormat( Number( data.json.M ), memFormat);
-              u02 = data.json.U;
-            }
+        if( data.type && data.type == 'db' ) {
+          drawTopSite( data.json );
+        } else if ( data.type && data.type == 'sys' ) {
+          cpuDataTable.setValue(sorts[data.json.H], 1, Math.round(data.json.C));
+          cpuChart.draw(cpuDataTable, options);
+
+          if( 0 == sorts[data.json.H] ){
+            memFormat = getNumberFormatString( Number( data.json.M ), false );
+            mem01 = getNumberFormat( Number( data.json.M ), memFormat);
+            u01 = data.json.U;
+          } else if( 1 == sorts[data.json.H]  ){
+            memFormat = getNumberFormatString( Number( data.json.M ), false );
+            mem02 = getNumberFormat( Number( data.json.M ), memFormat);
+            u02 = data.json.U;
           }
-        });
+        }
       });
-    } 
-    initialize();
+    });
+  } 
+  initialize();
 
-    var startFlag = false;
-    var monitor;
-    var btnToggle = document.getElementById( "btnToggle" );
+  var startFlag = false;
+  var monitor;
+  var btnToggle = document.getElementById( "btnToggle" );
 
-    var drawMemChart = function(){
-      monitor = setInterval( function() {
-        if( mem01 && mem02 ){
-          var time = getTime();
-          memOptions.vAxis.format = memFormat;
-          memDataTable.addRow( [time, mem01, mem02] );
+  var drawMemChart = function(){
+    monitor = setInterval( function() {
+      if( mem01 && mem02 ){
+        var time = getTime();
+        memOptions.vAxis.format = memFormat;
+        memDataTable.addRow( [time, mem01, mem02] );
 
-          if( memDataTable.getNumberOfRows() > 5 ) {
-            memDataTable.removeRow( memDataTable.getNumberOfRows() -6 );
-          }
-
-          memChart.draw(memDataTable,memOptions);
+        if( memDataTable.getNumberOfRows() > 5 ) {
+          memDataTable.removeRow( memDataTable.getNumberOfRows() -6 );
         }
 
-        viewParticle( [{ 'H':'stalk-front-c01','V':u01 },{ 'H':'stalk-front-c02','V':u02 }]);
-      }, 5000 );
-    };
+        memChart.draw(memDataTable,memOptions);
+      }
 
-    var topSite = [];
-    var drawTopSite = function( json ){
-      // template을 복사하여 새로운 DOM 객체를 생성합니다..
-      $( "#site_list" ).children().remove();
-      for( var key in json ){
-        var data = json[key];
-        var liId = data.S.replace( ".", "" );
-        
-        if( $( "#template_" + data.S ).length != 0 ){
-          var site = $( "#template_" + liId ).eq(0);
-          site.children( "span:first" ).text( data.C );
-          site.children( "span:last" ).text( data.S );
-        } else {
-          var newSite = $( "#template" ).clone();
+      viewParticle( [{ 'H':'stalk-front-c01','V':u01 },{ 'H':'stalk-front-c02','V':u02 }]);
+    }, 5000 );
+  };
 
-          // 새로 만든 DOM 객체를 수정합니다.
-          newSite.attr( "id", "template_"+ liId );
-          newSite.children( "span:first" ).text( data.C );
-          newSite.children( "span:last" ).text( data.S );
+  var topSite = [];
+  var drawTopSite = function( json ){
+    // template을 복사하여 새로운 DOM 객체를 생성합니다..
+    $( "#site_list" ).children().remove();
+    for( var key in json ){
+      var data = json[key];
+      var liId = data.S.replace( ".", "" );
+      
+      if( $( "#template_" + data.S ).length != 0 ){
+        var site = $( "#template_" + liId ).eq(0);
+        site.children( "span:first" ).text( data.C );
+        site.children( "span:last" ).text( data.S );
+      } else {
+        var newSite = $( "#template" ).clone();
 
-          // 새로 만든 DOM 객체를 ul DOM에 추가합니다.
-          newSite.appendTo( "#site_list" );
-          newSite.show();
-        }
+        // 새로 만든 DOM 객체를 수정합니다.
+        newSite.attr( "id", "template_"+ liId );
+        newSite.children( "span:first" ).text( data.C );
+        newSite.children( "span:last" ).text( data.S );
+
+        // 새로 만든 DOM 객체를 ul DOM에 추가합니다.
+        newSite.appendTo( "#site_list" );
+        newSite.show();
       }
     }
+  }
 
-    var toggleMonitor = function(){
-      if( !startFlag  ){
-        xpush.send('channel-dashboard', 'message', 'START_MONITOR' );
-        startFlag = true;
-        btnToggle.className = "btn btn-danger" ;
-        btnToggle.innerHTML = "Off";
-        drawMemChart();
+  var toggleMonitor = function(){
+    if( !startFlag  ){
+      xpush.send('channel-dashboard', 'message', 'START_MONITOR' );
+      startFlag = true;
+      btnToggle.className = "btn btn-danger" ;
+      btnToggle.innerHTML = "Off";
+      drawMemChart();
 
-        $( "#site_body" ).hide();
-        $( "#site_list" ).show();
-      } else {
-        xpush.send('channel-dashboard', 'message', 'STOP_MONITOR' );
-        startFlag = false;
-        mem01 = 0;
-        mem02 = 0;
-        u01 = 0;
-        u02 = 0;
-        btnToggle.className = "btn btn-primary" ;
-        btnToggle.innerHTML = "On";
+      $( "#site_body" ).hide();
+      $( "#site_list" ).show();
+    } else {
+      xpush.send('channel-dashboard', 'message', 'STOP_MONITOR' );
+      startFlag = false;
+      mem01 = 0;
+      mem02 = 0;
+      u01 = 0;
+      u02 = 0;
+      btnToggle.className = "btn btn-primary" ;
+      btnToggle.innerHTML = "On";
 
-        $( "#site_body" ).show();
-        $( "#site_list" ).hide();
+      $( "#site_body" ).show();
+      $( "#site_list" ).hide();
 
-        if( monitor ){
-          clearInterval( monitor );
-        }
+      if( monitor ){
+        clearInterval( monitor );
       }
     }
-  </script>
+  }
+</script>
 
-  <script type="text/javascript">
-    var w = 400,
-      h = 250,
-      z = d3.scale.category10();
-    var cw = 200;
+<script type="text/javascript">
+  var w = 400,
+    h = 250,
+    z = d3.scale.category10();
+  var cw = 200;
 
-    var svg = d3.select("#transaction").append("svg:svg")
-    .attr("width", w)
-    .attr("height", h);
-    
-    var data = [0,1];
-    var sel = svg.selectAll("rect").data(data).enter();
-    sel.append("rect")
-    .attr("id", function(d) {return "rect_"+serviceNames[d];})
-    .attr("fill", "white" )
-    .attr("stroke", "#999" )
-    .attr("width", 100)
-    .attr("height", 40)
-    .attr("x", function(d) {return ( d * cw ) + 50;} )
-    .attr("y", 210);
-    
-    sel.append("svg:text")
-    .attr("fill", "black")
-    .attr("x", function(d) {return ( d * cw ) + 100;})
-    .attr("y", 235)
-    .attr("text-anchor", "middle")
-    .style("font-size", "12px")
-    .text(function(d) {return hostNames[d]});
-    
-    sel.append("image")
-    .attr("id", function(d) {return "image"+d;})
-    .attr( "xlink:href", "assets/0.png" )
-    .attr("x", function(d) {return ( d * cw ) + 55;} )
-    .attr("y", 80 )
-    .attr("width", 100)
-    .attr("height", 100)
-    .attr("opacity", "1" );
-    
-    var queues = [];
-    for( var key in data ){
-      var queue = new CircularQueue(6); // a circular queue with 3 items
-      queue.push("5");
-      queue.push("4");
-      queue.push("3");
-      queue.push("2");
-      queue.push("1");
-      queue.push("0");        
-      queues.push( queue );
-    }
+  var svg = d3.select("#transaction").append("svg:svg")
+  .attr("width", w)
+  .attr("height", h);
+  
+  var data = [0,1];
+  var sel = svg.selectAll("rect").data(data).enter();
+  sel.append("rect")
+  .attr("id", function(d) {return "rect_"+serviceNames[d];})
+  .attr("fill", "white" )
+  .attr("stroke", "#999" )
+  .attr("width", 100)
+  .attr("height", 40)
+  .attr("x", function(d) {return ( d * cw ) + 50;} )
+  .attr("y", 210);
+  
+  sel.append("svg:text")
+  .attr("fill", "black")
+  .attr("x", function(d) {return ( d * cw ) + 100;})
+  .attr("y", 235)
+  .attr("text-anchor", "middle")
+  .style("font-size", "12px")
+  .text(function(d) {return hostNames[d]});
+  
+  sel.append("image")
+  .attr("id", function(d) {return "image"+d;})
+  .attr( "xlink:href", "assets/0.png" )
+  .attr("x", function(d) {return ( d * cw ) + 55;} )
+  .attr("y", 80 )
+  .attr("width", 100)
+  .attr("height", 100)
+  .attr("opacity", "1" );
+  
+  var queues = [];
+  for( var key in data ){
+    var queue = new CircularQueue(6); // a circular queue with 3 items
+    queue.push("5");
+    queue.push("4");
+    queue.push("3");
+    queue.push("2");
+    queue.push("1");
+    queue.push("0");        
+    queues.push( queue );
+  }
 
-    function particle( cx, cy, radius, sort ) {     
-      svg.append("svg:circle")
-      .attr("cx", cx)
-      .attr("cy", cy)
-      .attr("r", 1e-6)
-      .style("stroke", z(sort * 9))
-      .style("stroke-opacity", 1)
-      .transition()
-      .duration(5000)
-      .ease(Math.sqrt)
-      .attr("r", radius)
-      .style("stroke-opacity", 1e-6)
-      .remove();
-    }
-              
-    function runHorse( val, sort ){
-      var img = svg.select("#image"+ sort );
-      if( val == 0 ){
-        if( img.attr("opacity") == 1 ){
-          img.attr( "opacity", "1" )
-          .transition()
-          .duration(500)
-          .attr( "opacity", "0.5" );
-        }
-        return;
-      } else {
-        if( img.attr("opacity") == 0.5 ){           
-          img.attr( "opacity", "0.5" )
-          .transition()
-          .duration(500)
-          .attr( "opacity", "1" );
-        }         
-      }       
-      
-      var speed = Math.round( 50000 / val );
-      
-      svg.append("svg:text")
-      .attr("fill", "#000")
-      .attr("x", (sort * cw ) + 105 )
-      .attr("y", 190)
-      .attr("text-anchor", "end")
-      .style("font-size", "16px")
-      .text( val )
-      .transition()
-      .duration(5200)
-      .style("stroke-opacity", 1e-6)
-      .remove(); 
-      
-      var now = Date.now();
-      var t = setInterval(function(){
-        img.attr( "xlink:href", "assets/"+queues[sort].pop() +".png" );
-        if ( Date.now() - now > 5250 ){
-          clearInterval(t);
-        }
-      }, speed );
-    }
-      
-    function viewParticle( json ){
-
-      var totalTps = 0;
-      for (var inx = 0, len = json.length; inx < len ; inx ++){
-        var val = json[inx].V;
-        totalTps = plus( totalTps, Number( val ) );
-        var sort = sorts[json[inx].H];
-        runHorse( val, sort );
-        
-        if( val != 0 ){           
-          // Position X
-          var cx = ( sort * cw ) + 85;
-          var until = Math.floor( val / 200 ) * 5 ;
-          
-          var jnx = 1;
-          if( until < 1 ){
-            until = 1;
-          }         
-          
-          while( jnx <= until ){              
-            particle( cx, 130, val * ( jnx * ( 1/until) ), sort );
-            jnx++;
-          }
-        }
+  function particle( cx, cy, radius, sort ) {     
+    svg.append("svg:circle")
+    .attr("cx", cx)
+    .attr("cy", cy)
+    .attr("r", 1e-6)
+    .style("stroke", z(sort * 9))
+    .style("stroke-opacity", 1)
+    .transition()
+    .duration(5000)
+    .ease(Math.sqrt)
+    .attr("r", radius)
+    .style("stroke-opacity", 1e-6)
+    .remove();
+  }
+            
+  function runHorse( val, sort ){
+    var img = svg.select("#image"+ sort );
+    if( val == 0 ){
+      if( img.attr("opacity") == 1 ){
+        img.attr( "opacity", "1" )
+        .transition()
+        .duration(500)
+        .attr( "opacity", "0.5" );
+      }
+      return;
+    } else {
+      if( img.attr("opacity") == 0.5 ){           
+        img.attr( "opacity", "0.5" )
+        .transition()
+        .duration(500)
+        .attr( "opacity", "1" );
       }         
-      setTotal( Number(totalTps).toFixed(2) );
-    }
+    }       
     
-    function changeRectColor( serviceNm, isActive ){
-      var rect = svg.select("#rect_"+serviceNm);
-      if( isActive ){
-        rect.attr( "fill", "#87B87F" );
-      } else {
-        rect.attr( "fill", "#ABBAC3" );
+    var speed = Math.round( 50000 / val );
+    
+    svg.append("svg:text")
+    .attr("fill", "#000")
+    .attr("x", (sort * cw ) + 105 )
+    .attr("y", 190)
+    .attr("text-anchor", "end")
+    .style("font-size", "16px")
+    .text( val )
+    .transition()
+    .duration(5200)
+    .style("stroke-opacity", 1e-6)
+    .remove(); 
+    
+    var now = Date.now();
+    var t = setInterval(function(){
+      img.attr( "xlink:href", "assets/"+queues[sort].pop() +".png" );
+      if ( Date.now() - now > 5250 ){
+        clearInterval(t);
       }
-    }
+    }, speed );
+  }
     
-    function setTotal( totalTps ){
-      svg.append("svg:text")
-      .attr("fill", "#000")
-      .attr("x", 250 )
-      .attr("y", 65)
-      .attr("text-anchor", "end")
-      .style("font-size", "30px")
-      .text( totalTps )
-      .transition()
-      .duration(5200)
-      .style("stroke-opacity", 1e-6)
-      .remove();
-    }
-    
-    function plus() {
-      var argsLength = arguments.length;
-       
-      if(argsLength == 0) return 0;
-       
-      var result = 0.0;  //결과값 
-      var argString = "";  //문자열로 변환된 파라미터
-      var pointIndex = 0;  //소수점의 위치
-      var decimalSize = 0; //소수의 자리수
-      var maxDecimalSize = 0; //파라미터 중 가장 소수점이 큰 수의 소수 자리수
-      var maxPower = 1.0;  //파라미터 중 가장 소수점이 큰 수의 소수 자리수 * 10
-       
-      for(var inx = 0; inx < argsLength; inx++) {
-       
-        argString = arguments[inx] + "";
-        pointIndex = argString.indexOf(".");
-        decimalSize = (pointIndex < 0) ? 0 : argString.length - pointIndex - 1;
+  function viewParticle( json ){
+
+    var totalTps = 0;
+    for (var inx = 0, len = json.length; inx < len ; inx ++){
+      var val = json[inx].V;
+      totalTps = plus( totalTps, Number( val ) );
+      var sort = sorts[json[inx].H];
+      runHorse( val, sort );
+      
+      if( val != 0 ){           
+        // Position X
+        var cx = ( sort * cw ) + 85;
+        var until = Math.floor( val / 200 ) * 5 ;
         
-        if(maxDecimalSize < decimalSize) {
-          result = result * Math.pow(10.0, decimalSize - maxDecimalSize);
-          maxDecimalSize = decimalSize;
-          maxPower = Math.pow(10.0, maxDecimalSize);
+        var jnx = 1;
+        if( until < 1 ){
+          until = 1;
+        }         
+        
+        while( jnx <= until ){              
+          particle( cx, 130, val * ( jnx * ( 1/until) ), sort );
+          jnx++;
         }
-        
-        result += eval((parseFloat(arguments[inx]) * maxPower).toFixed(0));
       }
-      return (result / maxPower);
+    }         
+    setTotal( Number(totalTps).toFixed(2) );
+  }
+  
+  function changeRectColor( serviceNm, isActive ){
+    var rect = svg.select("#rect_"+serviceNm);
+    if( isActive ){
+      rect.attr( "fill", "#87B87F" );
+    } else {
+      rect.attr( "fill", "#ABBAC3" );
     }
-  </script>
+  }
+  
+  function setTotal( totalTps ){
+    svg.append("svg:text")
+    .attr("fill", "#000")
+    .attr("x", 250 )
+    .attr("y", 65)
+    .attr("text-anchor", "end")
+    .style("font-size", "30px")
+    .text( totalTps )
+    .transition()
+    .duration(5200)
+    .style("stroke-opacity", 1e-6)
+    .remove();
+  }
+  
+  function plus() {
+    var argsLength = arguments.length;
+     
+    if(argsLength == 0) return 0;
+     
+    var result = 0.0;  //결과값 
+    var argString = "";  //문자열로 변환된 파라미터
+    var pointIndex = 0;  //소수점의 위치
+    var decimalSize = 0; //소수의 자리수
+    var maxDecimalSize = 0; //파라미터 중 가장 소수점이 큰 수의 소수 자리수
+    var maxPower = 1.0;  //파라미터 중 가장 소수점이 큰 수의 소수 자리수 * 10
+     
+    for(var inx = 0; inx < argsLength; inx++) {
+     
+      argString = arguments[inx] + "";
+      pointIndex = argString.indexOf(".");
+      decimalSize = (pointIndex < 0) ? 0 : argString.length - pointIndex - 1;
+      
+      if(maxDecimalSize < decimalSize) {
+        result = result * Math.pow(10.0, decimalSize - maxDecimalSize);
+        maxDecimalSize = decimalSize;
+        maxPower = Math.pow(10.0, maxDecimalSize);
+      }
+      
+      result += eval((parseFloat(arguments[inx]) * maxPower).toFixed(0));
+    }
+    return (result / maxPower);
+  }
+</script>
