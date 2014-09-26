@@ -92,6 +92,14 @@
       NODE : '/node'
     };
 
+    XPush.prototype.enableDebug = function(){
+      isDebugging = true;
+    };
+
+    XPush.prototype.disableDebug = function(){
+      isDebugging = true;
+    };
+
     /**
      * userId와 password를 이용하여 회원가입을 한다.
      * @name signup
