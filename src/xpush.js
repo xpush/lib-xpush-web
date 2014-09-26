@@ -150,6 +150,7 @@
 
       if(typeof(mode) == 'function' && !cb){
         cb = mode;
+        mode = undefined;
       }
 
       self.userId = userId;

@@ -107,6 +107,6 @@ module.exports = function(grunt) {
   // Default task.
   grunt.registerTask('default', ['jshint', 'qunit', 'clean', 'concat', 'uglify']);
 
-  grunt.registerTask('min', ['clean', 'concat:copy', 'concat:dist', 'uglify:copy', 'uglify:dist']);
+  grunt.registerTask('min', ['clean','concat:dist','uglify:dist']);
 
 };

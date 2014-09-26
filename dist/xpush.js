@@ -1,4 +1,4 @@
-/*! xpush javascript library - v0.1.0 - 2014-09-22
+/*! xpush javascript library - v0.1.0 - 2014-09-26
 * https://xpush.github.io
 * Copyright (c) 2014 John Kim; Licensed MIT */
 (function(){
@@ -153,6 +153,7 @@
 
       if(typeof(mode) == 'function' && !cb){
         cb = mode;
+        mode = undefined;
       }
 
       self.userId = userId;
@@ -510,7 +511,7 @@
      */
     XPush.prototype.joinChannel = function(channel, param, cb){
       var self = this;
-      self._getChannelAsync(channel, function (err, ch){
+      self.getChannelAsync(channel, function (err, ch){
         ch.joinChannel( param, function( data ){
           cb( data );
         });
@@ -543,11 +544,11 @@
      * @param {string} channel - Channel Id
      * @param {callback} cb - 조회 후 수행할 callback function
      * @example
-     * xpush._getChannelAsync( 'channel03', function(err, result){
+     * xpush.getChannelAsync( 'channel03', function(err, result){
      *   console.log( 'result : ', result);
      * });
      */
-    XPush.prototype._getChannelAsync = function(channel, cb){
+    XPush.prototype.getChannelAsync = function(channel, cb){
       var self = this;
       var ch = self.getChannel(channel);
       if(!ch){
@@ -590,7 +591,7 @@
     XPush.prototype.uploadStream = function(channel, inputObj, fnPrg, fnCallback){
       var self = this;
 
-      self._getChannelAsync(channel, function (err, ch){
+      self.getChannelAsync(channel, function (err, ch){
 
         var blobs   = [];
         var streams = [];
@@ -652,7 +653,7 @@
     XPush.prototype.uploadFile = function(channel, fileUri, inputObj, fnPrg, fnCallback){
       var self = this;
 
-      self._getChannelAsync(channel, function(err, ch){
+      self.getChannelAsync(channel, function(err, ch){
 
         if(window.FileTransfer && window.FileUploadOptions){
 
@@ -883,7 +884,7 @@
     XPush.prototype.send = function(channel, name, data){
       var self = this;
 
-      self._getChannelAsync(channel, function (err, ch){
+      self.getChannelAsync(channel, function (err, ch){
         ch.send(name,data);
       });
     };
