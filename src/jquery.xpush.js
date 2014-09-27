@@ -2,7 +2,7 @@
  * xpush-javascript
  * https://xpush.github.io
  *
- * Copyright (c) 2013 John Kim
+ * Copyright (c) 2014 John Kim
  * Licensed under the MIT license.
  */
 

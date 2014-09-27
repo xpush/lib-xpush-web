@@ -1,10 +1,10 @@
 /*! xpush javascript library - v0.1.0 - 2014-09-27
 * https://xpush.github.io
-* Copyright (c) 2014 John Kim; Licensed MIT */
+* Copyright (c) 2014 John Kim; Licensed  */
 (function(){
 
   var XPush = (function() {
-    if (typeof module !== 'undefined' ) {
+    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
       http = require('http');
       io = require('socket.io-client');
     }

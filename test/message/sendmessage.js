@@ -1,8 +1,8 @@
 //	test : XPush.send(channel.chNm, sendName, sendData);
 // session receive & channel receive
 
-var HOST = "http://www.notdol.com:8000";
-var APPID = 'stalk-io';
+var HOST = "http://demo.stalk.io:8000";
+var APPID = 'demo';
 
 var xpush = new XPush(HOST,APPID);
 var xpush1 = new XPush(HOST,APPID);
