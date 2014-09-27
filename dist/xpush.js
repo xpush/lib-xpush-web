@@ -1,4 +1,4 @@
-/*! xpush javascript library - v0.1.0 - 2014-09-26
+/*! xpush javascript library - v0.1.0 - 2014-09-27
 * https://xpush.github.io
 * Copyright (c) 2014 John Kim; Licensed MIT */
 (function(){
@@ -93,6 +93,14 @@
       Signout : '/signout',
       Message : '/msg',
       NODE : '/node'
+    };
+
+    XPush.prototype.enableDebug = function(){
+      isDebugging = true;
+    };
+
+    XPush.prototype.disableDebug = function(){
+      isDebugging = true;
     };
 
     /**
@@ -1374,7 +1382,9 @@
      */
     XPush.prototype.clearEvent = function(){
       var self = this;
+      var sessionEvent = self._events['___session_event'];
       self._events = {};
+      self._events['___session_event'] = sessionEvent;
     };
 
     /**
