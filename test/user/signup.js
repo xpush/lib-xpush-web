@@ -15,29 +15,55 @@ QUnit.module("init",{
 
 async.series([
   function(cb){
-		QUnit.asyncTest("signup 1",function(assert){
-
-	    expect(100);
-			for(var i = 1 ; i <= 100; i++){
-				xpush.signup('notdol'+(100+i),'win1234', function(){
-					assert.equal(true, true, "signup failed!");
-				});
-			}
-			QUnit.start();
+		QUnit.asyncTest("signup 1", function(assert){
+			xpush.signup(USERS[0],PASS[0], function(err, data){
+				if( typeof data == 'object'&& data.status ){
+					assert.equal(data.status, "ok", "User register success");
+				} else {
+					assert.equal(data, "ERR-USER_EXIST", "User already exist");	
+				}
+				QUnit.start();
+			});
 			cb();
 		});
   },
   function(cb){
-		QUnit.asyncTest("signup 2",function(assert){
-
-	    expect(100);
-			for(var i = 101 ; i <= 200; i++){
-				xpush.signup('notdol'+(200+i),'win1234',DEVICEID, function(){
-					assert.equal(true, true, "signup failed!");
-				});
-			}
-			QUnit.start();
+		QUnit.asyncTest("signup 2", function(assert){			
+			xpush.signup(USERS[1],PASS[1], function(err, data){
+				if( typeof data == 'object' && data.status ){
+					assert.equal(data.status, "ok", "User register success");
+				} else {
+					assert.equal(data, "ERR-USER_EXIST", "User already exist");	
+				}
+				QUnit.start();
+			});
 			cb();
 		});
-	}
+  },
+  function(cb){
+		QUnit.asyncTest("signup 3", function(assert){			
+			xpush.signup(USERS[2],PASS[2], function(err, data){
+				if( typeof data == 'object' && data.status ){
+					assert.equal(data.status, "ok", "User register success");
+				} else {
+					assert.equal(data, "ERR-USER_EXIST", "User already exist");	
+				}
+				QUnit.start();
+			});
+			cb();
+		});
+  },
+  function(cb){
+		QUnit.asyncTest("signup 4", function(assert){			
+			xpush.signup(USERS[3],PASS[3], function(err, data){
+				if( typeof data == 'object' && data.status ){
+					assert.equal(data.status, "ok", "User register success");
+				} else {
+					assert.equal(data, "ERR-USER_EXIST", "User already exist");	
+				}
+				QUnit.start();
+			});
+			cb();
+		});
+  }  
 ]);

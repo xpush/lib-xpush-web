@@ -16,56 +16,46 @@ QUnit.module("init",{
 })
 
 async.series([
-    function(cb){
+  function(cb){
 		QUnit.test("init xpush",function(assert){
 			assert.ok(xpush, " XPush created...");
 		});
 		cb();
-    },
-    function(cb){
+  },
+  function(cb){
+		QUnit.asyncTest("login xpush",function(assert){
+			expect(1);
+			xpush.login(USERS[0],PASS[0],function(err){
+				assert.equal(err, undefined, "login success!");
+				QUnit.start();
+			});
+	    cb(null);
+		});
+  },
+  function(cb){
 		QUnit.asyncTest("login xpush1",function(assert){
 			expect(1);
-			window.xpush.login(USERS[0],PASS[0],function(err){
-				assert.equal(err, undefined, "login failed!");
+			xpush1.login(USERS[1],PASS[1],function(err){
+				assert.equal(err, undefined, "login success!");
 				QUnit.start();
 			});
-	        cb(null);
+	    cb(null);
 		});
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("login xpush2",function(assert){
 			expect(1);
-			window.xpush1.login(USERS[1],PASS[1],function(err){
-				assert.equal(err, undefined, "login failed!");
+			xpush2.login(USERS[2],PASS[2],function(err){
+				assert.equal(err, undefined, "login success!");
 				QUnit.start();
 			});
-	        cb(null);
+	    cb(null);
 		});
-    },
-    function(cb){
-		QUnit.asyncTest("login xpush3",function(assert){
-			expect(1);
-			window.xpush2.login(USERS[2],PASS[2],function(err){
-				assert.equal(err, undefined, "login failed!");
-				QUnit.start();
-			});
-	        cb(null);
-		});
-    },
-    function(cb){
-		QUnit.asyncTest("login xpush4",function(assert){
-			expect(1);
-			window.xpush3.login(USERS[3],PASS[3],function(err){
-				assert.equal(err, undefined, "login failed!");
-				QUnit.start();
-			});
-	        cb(null);
-		});
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("create channel",function(assert){
 			expect(6);
-			var channel = window.xpush.createChannel([USERS[1],USERS[2]],undefined, function(err){
+			var channel = xpush.createChannel([USERS[1],USERS[2]], function(err){
 				assert.equal(err, null, "channel connect complete!");
 				xpush.getChannels(function(err,result){
 					assert.equal(err, null, "channel connect complete!");
@@ -78,49 +68,40 @@ async.series([
 			});
 			assert.ok(channel,' channel object is created!');
 		});
-    },
-
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("send Message & receive Message 1 ",function(assert){
 			expect(6);
+
 			var channel = CHANNEL[0];
 			var channelName = channel.chNm;
 
 			var sendData = {"a":"a"};
 			var sendName = 'message';
-			xpush.on('message',function(ch,name,data){
-				assert.equal(ch, channelName, "channel name is right1!");
-				assert.equal(name, sendName, "send name is right1!");
-				//assert.equal(sendData, data, "send data is right1!");
-				cnt++; checkComplete();
-			});
-
 			xpush1.on('message',function(ch,name,data){
-				console.log("===== notdol",arguments);
-				assert.equal(ch, channelName, "channel name is right1!");
-				assert.equal(name, sendName, "send name is right1!");
-				//assert.equal(sendData, data, "send data is right1!");	
-				cnt++; checkComplete();
+				assert.equal(ch, channelName, "channel name is " + ch );
+				assert.equal(name, sendName, "send name is " + name );
+				assert.ok( true, JSON.stringify( data ) );
+				checkComplete();
 			});
 
 			xpush2.on('message',function(ch,name,data){
-				assert.equal(ch, channelName, "channel name is right2!");
-				assert.equal(name, sendName, "send name is right2!");
-				//assert.equal(sendData, data, "send data is right2!");	
-				cnt++; checkComplete();
+				assert.equal(ch, channelName, "channel name is " + ch );
+				assert.equal(name, sendName, "send name is " + name );
+				assert.ok( true, JSON.stringify( data ) );
+				checkComplete();
 			});
 
 			channel.send(sendName,sendData);
-
 			sendData.channel = channelName;
 
-			var completeCnt = 3;
-			var cnt = 0 ;
-			var checkComplete = function(){
-				if(completeCnt <= cnt) {
+			var count = 2;
+			var checkComplete = function(){				
+				--count; 
+				if( !count) {
 					QUnit.start(); cb(null);
 				}
 			}
 		});
-    }
+  }
 ]);

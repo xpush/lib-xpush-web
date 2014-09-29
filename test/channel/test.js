@@ -65,7 +65,7 @@ async.series([
     function(cb){
 		QUnit.asyncTest("create channel",function(assert){
 			expect(6);
-			var channel = window.xpush.createChannel([USERS[1],USERS[2]],undefined, function(err){
+			var channel = window.xpush.createChannel([USERS[1],USERS[2]], function(err){
 				assert.equal(err, null, "channel connect complete!");
 				xpush.getChannels(function(err,result){
 					assert.equal(err, null, "channel connect complete!");

@@ -1243,7 +1243,7 @@
         if(xhr.readyState === 4) {
           var r = JSON.parse(xhr.responseText);
           if(r.status != 'ok'){
-            cb(r.status,r.mesage);
+            cb(r.status,r.message);
           }else{
             cb(null,r);
           }
