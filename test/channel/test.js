@@ -16,114 +16,125 @@ QUnit.module("init",{
 })
 
 async.series([
-    function(cb){
+  function(cb){
 		QUnit.test("init xpush",function(assert){
 			assert.ok(xpush, " XPush created...");
 		});
 		cb();
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("login xpush1",function(assert){
 			expect(1);
-			window.xpush.login(USERS[0],PASS[0],function(err){
-				assert.equal(err, undefined, "login failed!");
+			xpush.login(USERS[0],PASS[0],function(err){
+				assert.equal(err, undefined, "login success!");
 				QUnit.start();
 			});
-	        cb(null);
+	    cb(null);
 		});
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("login xpush2",function(assert){
 			expect(1);
-			window.xpush1.login(USERS[1],PASS[1],function(err){
-				assert.equal(err, undefined, "login failed!");
+			xpush1.login(USERS[1],PASS[1],function(err){
+				assert.equal(err, undefined, "login success!");
 				QUnit.start();
 			});
-	        cb(null);
+	    cb(null);
 		});
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("login xpush3",function(assert){
 			expect(1);
-			window.xpush2.login(USERS[2],PASS[2],function(err){
-				assert.equal(err, undefined, "login failed!");
+			xpush2.login(USERS[2],PASS[2],function(err){
+				assert.equal(err, undefined, "login success!");
 				QUnit.start();
 			});
-	        cb(null);
+	    cb(null);
 		});
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("login xpush4",function(assert){
 			expect(1);
-			window.xpush3.login(USERS[3],PASS[3],function(err){
-				assert.equal(err, undefined, "login failed!");
+			xpush3.login(USERS[3],PASS[3],function(err){
+				assert.equal(err, undefined, "login success!");
 				QUnit.start();
 			});
-	        cb(null);
+	    cb(null);
 		});
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("create channel",function(assert){
-			expect(6);
-			var channel = window.xpush.createChannel([USERS[1],USERS[2]], function(err){
-				assert.equal(err, null, "channel connect complete!");
-				xpush.getChannels(function(err,result){
-					assert.equal(err, null, "channel connect complete!");
+			expect(5);
+			var channel = xpush.createChannel([USERS[1],USERS[2]], function(err, channelName){
+				assert.equal(err, null, "channel connect complete : " + channelName );
+				xpush.getChannelData(channelName, function(err,result){
 					assert.ok(result, "retrieve channel complete!");
-					assert.equal(result.length , 1 , 'channel create one!');
-					assert.equal(result[0].channel , channel.chNm , 'channel name is right!');
-					console.log("========= notdol");
-					console.log(result[0]);
+					assert.equal(result.US.length , 3 , 'channel has 3 users' );
+					assert.equal(result.C , channel.chNm , 'channel name is right!');
 					CHANNEL.push(channel.chNm);
-					QUnit.start(); cb(null);
+					checkComplete();
 				});
 			});
 			assert.ok(channel,' channel object is created!');
+
+	    var count = 1;
+      var checkComplete = function(){       
+        --count; 
+        if( !count) {
+          QUnit.start(); cb(null);
+        }
+      }		
 		});
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("retrieve channel1",function(assert){
-			expect(4);
+			expect(3);
 			xpush1.getChannels(function(err,result){
 				var channelName = CHANNEL[0];
 				assert.equal(err, null, "channel connect complete!");
-				assert.ok(result, "retrieve channel complete!");
-				assert.equal(result.length , 1 , 'channel create one!');
-				assert.equal(result[0].channel , channelName , 'channel name is right!');
+				assert.ok(result, "retrieve channel complete! : " + result.length);
+				assert.ok(result.length, 'channel create one!');
 				QUnit.start(); cb(null);
 			});
 		});
-    },
-    function(cb){
+  },
+  function(cb){
 		QUnit.asyncTest("retrieve channel2",function(assert){
-			expect(4);
+			expect(3);
 			xpush2.getChannels(function(err,result){
 				var channelName = CHANNEL[0];
 				assert.equal(err, null, "channel connect complete!");
-				assert.ok(result, "retrieve channel complete!");
-				assert.equal(result.length , 1 , 'channel create one!');
-				assert.equal(result[0].channel , channelName , 'channel name is right!');
+				assert.ok(result, "retrieve channel complete! : " + result.length);
+				assert.ok(result.length, 'channel create one!');
 				QUnit.start(); cb(null);
 			});
 		});
-    },
-    function(cb){
-		QUnit.asyncTest("exit channel1",function(assert){
+  },
+  function(cb){
+		QUnit.asyncTest("Exit channel",function(assert){
 			expect(3);
 			var channelName = CHANNEL[0];
 			xpush.exitChannel(channelName, function(err,result){
-				assert.equal(err, null, "channel connect complete!");
+				assert.equal(err, null, "Exit connect complete!");
 				xpush1.exitChannel(channelName, function(err,result){
-					assert.equal(err, null, "channel connect complete!");
+					assert.equal(err, null, "Exit connect complete!");
 					xpush2.exitChannel(channelName, function(err,result){
-						assert.equal(err, null, "channel connect complete!");
+						assert.equal(err, null, "Exit connect complete!");
 						QUnit.start(); cb(null);
 					});
 				});
 			});
+		});		
+  },
+  function(cb){
+  	// todo 채널에서 모든 사용자가 나가면 channel 정보는 사라진다.
+		QUnit.asyncTest("channel check1",function(assert){
+			expect(1);
+			var channelName = CHANNEL[0];
+			xpush.getChannelData(channelName, function(err,result){
+			  assert.equal(err, 'ERR-NOTEXIST', "Channel is removed");
+			  QUnit.start(); cb(null);
+			});
 		});
-		// todo 채널에서 모든 사용자가 나갔지만 채널 정보는 없어지지 않았습니다. 
-    },
-
-
+  }
 ]);

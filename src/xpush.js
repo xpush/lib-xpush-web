@@ -395,10 +395,9 @@
           ch.connect(function(){
             if(cb) cb();
           }, 'CHANNEL_ONLY');
-
         }
       });
-
+      return ch;
     };
 
     /**
@@ -474,7 +473,7 @@
       var self = this;
       self.sEmit('channel-list-active',data, function(err, result){
         //app, channel, created
-        cb(result);
+        cb(err, result);
       });
     };
 

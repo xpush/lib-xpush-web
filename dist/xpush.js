@@ -401,7 +401,7 @@
 
         }
       });
-
+      return ch;
     };
 
     /**
@@ -477,7 +477,7 @@
       var self = this;
       self.sEmit('channel-list-active',data, function(err, result){
         //app, channel, created
-        cb(result);
+        cb(err,result);
       });
     };
 
