@@ -1,4 +1,4 @@
-/*! xpush javascript library - v0.1.0 - 2014-09-30
+/*! xpush javascript library - v0.1.0 - 2014-10-04
 * https://xpush.github.io
 * Copyright (c) 2014 John Kim; Licensed  */
 (function(){
@@ -22,12 +22,19 @@
     };
 
     var isDebugging = false;
-    var debug = function(){
-      if( isDebugging ){
-        if (console.log.bind === 'undefined') { // IE < 10
-          Function.prototype.bind.call(console.log, console, context);
+
+    var debug = function() { 
+      if (window.console) {
+        if (Function.prototype.bind) {
+          debug = Function.prototype.bind.call(console.log, console);
         } else {
-          console.log.apply(console, arguments);
+          debug = function() { 
+            Function.prototype.apply.call(console.log, console, arguments);
+          };
+        }
+  
+        if( isDebugging ){
+          debug.apply(this, arguments);
         }
       }
     }
@@ -95,7 +102,7 @@
     };
 
     /**
-     * userId와 password를 이용하여 회원가입을 한다.
+     * debug 기능을 켠다.
      * @name enableDebug
      * @memberof Xpush
      * @function
@@ -108,7 +115,7 @@
     };
 
     /**
-     * userId와 password를 이용하여 회원가입을 한다.
+     * debug 기능을 끈다.
      * @name disableDebug
      * @memberof Xpush
      * @function
@@ -398,7 +405,6 @@
           ch.connect(function(){
             if(cb) cb();
           }, 'CHANNEL_ONLY');
-
         }
       });
       return ch;
@@ -477,7 +483,7 @@
       var self = this;
       self.sEmit('channel-list-active',data, function(err, result){
         //app, channel, created
-        cb(err,result);
+        cb(err, result);
       });
     };
 
@@ -1716,6 +1722,7 @@
     }
   }
 })();
+
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.io=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 
 module.exports = _dereq_('./lib/');

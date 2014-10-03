@@ -19,12 +19,19 @@
     };
 
     var isDebugging = false;
-    var debug = function(){
-      if( isDebugging ){
-        if (console.log.bind === 'undefined') { // IE < 10
-          Function.prototype.bind.call(console.log, console, context);
+
+    var debug = function() { 
+      if (window.console) {
+        if (Function.prototype.bind) {
+          debug = Function.prototype.bind.call(console.log, console);
         } else {
-          console.log.apply(console, arguments);
+          debug = function() { 
+            Function.prototype.apply.call(console.log, console, arguments);
+          };
+        }
+  
+        if( isDebugging ){
+          debug.apply(this, arguments);
         }
       }
     }
@@ -92,7 +99,7 @@
     };
 
     /**
-     * userId와 password를 이용하여 회원가입을 한다.
+     * debug 기능을 켠다.
      * @name enableDebug
      * @memberof Xpush
      * @function
@@ -105,7 +112,7 @@
     };
 
     /**
-     * userId와 password를 이용하여 회원가입을 한다.
+     * debug 기능을 끈다.
      * @name disableDebug
      * @memberof Xpush
      * @function
