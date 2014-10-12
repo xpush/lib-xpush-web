@@ -18,23 +18,9 @@
       ,'force new connection': true
     };
 
-    var isDebugging = false;
-
-    var debug = function() { 
-      if (window.console) {
-        if (Function.prototype.bind) {
-          debug = Function.prototype.bind.call(console.log, console);
-        } else {
-          debug = function() { 
-            Function.prototype.apply.call(console.log, console, arguments);
-          };
-        }
-  
-        if( isDebugging ){
-          debug.apply(this, arguments);
-        }
-      }
-    }
+    var oldDebug;
+    var debug = function() {
+    };
     
     /**
      * Xpush의 생성자
@@ -108,7 +94,23 @@
      * xpush.enableDebug();
      */
     XPush.prototype.enableDebug = function(){
-      isDebugging = true;
+      if( oldDebug ){
+        return;
+      }
+
+      if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+        debug = Function.prototype.bind.call(console.log, console);
+      } else {
+        if (window.console) {
+          if (Function.prototype.bind) {
+            debug = Function.prototype.bind.call(console.log, console);
+          } else {
+            debug = function() {
+              Function.prototype.apply.call(console.log, console, arguments);
+            };
+          }
+        }
+      }
     };
 
     /**
@@ -121,7 +123,11 @@
      * xpush.disableDebug();
      */
     XPush.prototype.disableDebug = function(){
-      isDebugging = true;
+      // Init debug funciton
+      debug = function(){
+      };
+
+      oldDebug = undefined;
     };
 
     /**
@@ -888,7 +894,11 @@
         column: _params.column
       };
 
-      if(_params.options) params['options'] = _params.options;
+      if(_params.options) {
+        params['options'] = _params.options;
+      } else {
+        params['options'] = {};
+      }
 
       debug("xpush : queryUser ",params);
 
@@ -1178,7 +1188,7 @@
         res.on("end", function() {
           var r = JSON.parse(result);
           if(r.status != 'ok'){
-            cb(r.status,r.mesage);
+            cb(r.status,r.message);
           }else{
             cb(null,r);
           }  
@@ -1294,9 +1304,9 @@
           cb(null, result.result);
         }else{
           if(result.status.indexOf('WARN') == 0){
-            console.warn("xpush : ", key, result.status, result.message);
+            debug("xpush : ", key, result.status, result.message);
           }else{
-            console.error("xpush : ", key, result.status, result.message);
+            debug("xpush : ", key, result.status, result.message);
           }
           cb(result.status, result.message);
         }
