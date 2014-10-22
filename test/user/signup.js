@@ -1,6 +1,3 @@
-var HOST = "http://demo.stalk.io:8000";
-var APPID = 'demo';
-
 var xpush = new XPush(HOST,APPID);
 
 var USERS = ['notdol110','notdol111','notdol112','notdol113'];

@@ -1,6 +1,3 @@
-var HOST = "http://demo.stalk.io:8000";
-var APPID = 'demo';
-
 var xpush = new XPush(HOST,APPID);
 var xpush1 = new XPush(HOST,APPID);
 var xpush2 = new XPush(HOST,APPID);
