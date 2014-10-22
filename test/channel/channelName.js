@@ -4,8 +4,6 @@ var APPID = 'demo';
 var xpush = new XPush(HOST,APPID);
 var xpush1 = new XPush(HOST,APPID);
 var xpush2 = new XPush(HOST,APPID);
-var xpush3 = new XPush(HOST,APPID);
-
 var USERS = ['notdol110','notdol111','notdol112','notdol113'];
 var PASS = ['win1234','win1234','win1234','win1234'];
 var CHANNEL = [];
@@ -53,21 +51,12 @@ async.series([
     });
   },
   function(cb){
-    QUnit.asyncTest("login xpush4",function(assert){
-      expect(1);
-      xpush3.login(USERS[3],PASS[3],function(err){
-        assert.equal(err, undefined, "login success!");
-        QUnit.start();
-      });
-      cb(null);
-    });
-  },
-  function(cb){
-    QUnit.asyncTest("create channel",function(assert){
+    QUnit.asyncTest("create custom channel without data",function(assert){
       expect(6);
       var channelName = 'channelname3';
       var channel = xpush.createChannel([USERS[1],USERS[2]],channelName, function(err){
         assert.equal(err, null, "channel connect complete!");
+        
         xpush.getChannelData(channelName, function(err,result){
           assert.ok(result, "retrieve channel complete!");
           assert.equal(result.US.length , 3 , 'channel has 3 users' );
