@@ -1,3 +1,10 @@
+/*
+ *  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
 ;(function() {
 
   var localStream;
@@ -20,10 +27,14 @@
     STARTED: false
   };
 
+  var turnUrl='';
+
   var _initProcess = function (type, data){
     console.log('EVENT', type, data);
 
     if(data.event == 'CONNECTION' && userId == data.U){
+
+      //maybeRequestTurn();
 
       if(!channel){
         channel = xpush.getChannel(channelNm);
@@ -74,7 +85,7 @@
       console.log('    ---------------- ', ch, name, message);
 
       if (message === 'MEDIA') {
-  	     maybeStart();
+         maybeStart();
 
       }else if (message === 'JOIN') {
          STATUS.READY = true;
@@ -133,8 +144,49 @@
   };
 
   window.onbeforeunload = function(e){
-  	//sendMessage('bye');
+    //sendMessage('bye');
   };
+
+  var turnDone = false;
+  function maybeRequestTurn() {
+    if (turnUrl === '') {
+        turnDone = true;
+        return;
+    }
+    for (var i = 0, len = CONFIG.pc.iceServers.length; i < len; i++) {
+      console.log('TURN---', CONFIG.pc.iceServers[i]);
+        if (CONFIG.pc.iceServers[i].url.substr(0, 5) === 'turn:') {
+            turnDone = true;
+            return;
+        }
+    }
+    var currentDomain = document.domain;
+    //if (currentDomain.search('localhost') === -1 && currentDomain.search('apprtc') === -1) {
+    //    turnDone = true;
+    //    return;
+    //}
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function () {
+
+        if (xmlhttp.readyState !== 4) {
+            return;
+        }
+        if (xmlhttp.status === 200) {
+            var turnServer = JSON.parse(xmlhttp.responseText);
+            var iceServers = createIceServers(turnServer.uris, turnServer.username, turnServer.password);
+            if (iceServers !== null) {
+                CONFIG.pc.iceServers = CONFIG.pc.iceServers.concat(iceServers);
+            }
+        } else {
+            messageError('No TURN server; unlikely that media will traverse networks. ' + 'If this persists please report it to ' + 'discuss-webrtc@googlegroups.com.');
+        }
+        turnDone = true;
+        maybeStart();
+    };
+    console.log(turnUrl);
+    xmlhttp.open('GET', turnUrl, true);
+    xmlhttp.send();
+  }
 
 
   // ********** P2P Connections *********

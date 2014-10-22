@@ -23,9 +23,9 @@ In your web page:
 Data send
 ```html
 <script>
-  var xpush1 = new XPush('http://local.host:8000', 'APP_ID');
+  var xpush1 = new XPush('http://demo.stalk.io:8000', 'APP_ID');
   xpush1.login('userid1','password',function(){ 
-      xpush1.send('channelname','name',data); 
+      xpush1.send('channelname','message',data); 
   }); 
 </script>
 ```
@@ -33,7 +33,7 @@ Data send
 Other user receive data
 ```html
 <script>
-  var xpush2 = new XPush('http://local.host:8000', 'APP_ID');
+  var xpush2 = new XPush('http://demo.stalk.io:8000', 'APP_ID');
   xpush2.login('userid2','password',function(){
     xpush2.on('message',function(channel, name, data){
       // channel is channelname, name is key, data is data!
@@ -44,7 +44,7 @@ Other user receive data
 
 ## Documentation
 
-_(Coming soon)_
+http://xpush.github.io/doc/library/javascript/
 
 ## Examples
 #### message send
@@ -52,9 +52,9 @@ _(Coming soon)_
 Use XPush Object! But you must know your target channel name;
 ```html
 <script>
-  var xpush1 = new XPush('http://local.host:8000', 'APP_ID');
+  var xpush1 = new XPush('http://demo.stalk.io:8000', 'APP_ID');
   xpush1.login('userid1','password',function(){
-      xpush1.send('channelname','name',data);
+      xpush1.send('channelname','message',data);
   });
 </script>
 ```
@@ -62,13 +62,13 @@ Use XPush Object! But you must know your target channel name;
 Channel Create & Use Channel Object
 ```html
 <script>
-  var xpush2 = new XPush('http://local.host:8000', 'APP_ID');
+  var xpush2 = new XPush('http://demo.stalk.io:8000', 'APP_ID');
   
   xpush2.login('userid2','password',function(){
     var channel = xpush2.createChannel([userid1, userid2 ...], /*channelName(option),*/ function(err, channelName){
 
       });
-    channel.send('name',data);
+    channel.send('message',data);
   });
 </script>
 ```
@@ -76,7 +76,7 @@ Channel Create & Use Channel Object
 #### receive message
 ```html
 <script>
-  var xpush3 = new XPush('http://local.host:8000', 'APP_ID');
+  var xpush3 = new XPush('http://demo.stalk.io:8000', 'APP_ID');
   
   xpush3.login('userid3','password',function(){
     xpush3.on('message',function(channelname, name, data){
@@ -89,7 +89,7 @@ Channel Create & Use Channel Object
 #### create channel
 ```html
 <script>
-  var xpush4 = new XPush('http://local.host:8000', 'APP_ID');
+  var xpush4 = new XPush('http://demo.stalk.io:8000', 'APP_ID');
   
   xpush4.login('userid4','password',function(){
     var channel = xpush4.createChannel([userid1, userid2 ...], /*channelName(option),*/ function(err, channelName){
@@ -102,7 +102,7 @@ Channel Create & Use Channel Object
 
 ```html
 <script>
-  var xpush = new XPush('http://local.host:8000', 'APP_ID');
+  var xpush = new XPush('http://demo.stalk.io:8000', 'APP_ID');
   
   xpush.login('userid','password',function(){
     xpush.on('newchannel',function(chnnelObject){
@@ -111,11 +111,6 @@ Channel Create & Use Channel Object
   });
 </script>
 ```
-
-
-## Release History
-_(Nothing yet)_
-
 
 ## License
 xpush libraries may be freely distributed under the MIT license.

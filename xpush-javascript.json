@@ -13,12 +13,6 @@
     "url": "https://github.com/xpush/lib-xpush-javascript.git"
   },
   "bugs": "https://github.com/xpush/lib-xpush-javascript/issues",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://xpush.github.io/blob/master/LICENSE-MIT"
-    }
-  ],
   "dependencies": {
     "jquery": "*"
   },
