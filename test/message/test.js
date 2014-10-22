@@ -6,8 +6,6 @@ var xpush3 = new XPush(HOST,APPID);
 var USERS = ['notdol110','notdol111','notdol112','notdol113'];
 var PASS = ['win1234','win1234','win1234','win1234'];
 var CHANNEL = [];
-var MESSAGES = [];
-var MSG_CNT = 10;
 
 QUnit.module("init",{
   setup : function(assert){
@@ -22,9 +20,19 @@ async.series([
     cb();
   },
   function(cb){
+    QUnit.asyncTest("login xpush",function(assert){
+      expect(1);
+      xpush.login(USERS[0],PASS[0],function(err){
+        assert.equal(err, undefined, "login success!");
+        QUnit.start();
+      });
+      cb(null);
+    });
+  },
+  function(cb){
     QUnit.asyncTest("login xpush1",function(assert){
       expect(1);
-      window.xpush.login(USERS[0],PASS[0],function(err){
+      xpush1.login(USERS[1],PASS[1],function(err){
         assert.equal(err, undefined, "login success!");
         QUnit.start();
       });
@@ -34,7 +42,7 @@ async.series([
   function(cb){
     QUnit.asyncTest("login xpush2",function(assert){
       expect(1);
-      window.xpush1.login(USERS[1],PASS[1],function(err){
+      xpush2.login(USERS[2],PASS[2],function(err){
         assert.equal(err, undefined, "login success!");
         QUnit.start();
       });
@@ -44,7 +52,7 @@ async.series([
   function(cb){
     QUnit.asyncTest("create channel",function(assert){
       expect(6);
-      var channel = window.xpush.createChannel([USERS[1],USERS[2]],function(err){
+      var channel = xpush.createChannel([USERS[1],USERS[2]], function(err){
         assert.equal(err, null, "channel connect complete!");
         xpush.getChannels(function(err,result){
           assert.equal(err, null, "channel connect complete!");
@@ -58,56 +66,38 @@ async.series([
       assert.ok(channel,' channel object is created!');
     });
   },
-
   function(cb){
     QUnit.asyncTest("send Message & receive Message 1 ",function(assert){
-      var MAX = (MSG_CNT) * 2 * 3;
-      expect(MAX);
+      expect(6);
 
       var channel = CHANNEL[0];
       var channelName = channel.chNm;
-      //var sendData = {"a":"a"};
+
+      var sendData = {"a":"a"};
       var sendName = 'message';
-
-      xpush.on('message',function(ch,name,data){
-        assert.equal(ch, channelName, "channel name is right1!");
-        assert.equal(name, sendName, "send name is right1!");
-        //assert.equal(sendData, data, "send data is right1!");
-        cnt++; checkComplete();
-        //console.log("test : ",xpush.userId,ch,name,data);
-      });
-
       xpush1.on('message',function(ch,name,data){
-        assert.equal(ch, channelName, "channel name is right1!");
-        assert.equal(name, sendName, "send name is right1!");
-        //console.log("test : ",xpush1.userId,ch,name,data);
-        //assert.equal(sendData, data, "send data is right1!"); 
-        cnt++; checkComplete();
+        assert.equal(ch, channelName, "channel name is " + ch );
+        assert.equal(name, sendName, "send name is " + name );
+        assert.ok( true, JSON.stringify( data ) );
+        checkComplete();
       });
 
-      for(var i = 0 ; i < MSG_CNT ; i++){
-        var sendData = {"a":"a", cnt: i};
-        channel.send(sendName,sendData);
-        sendData.channel = channelName;
-        MESSAGES.push(sendData);
-      };
-      var cnt = 0 ;
-      var checkComplete = function(){
-        if(MAX / 2 <= cnt) {
+      xpush2.on('message',function(ch,name,data){
+        assert.equal(ch, channelName, "channel name is " + ch );
+        assert.equal(name, sendName, "send name is " + name );
+        assert.ok( true, JSON.stringify( data ) );
+        checkComplete();
+      });
+
+      channel.send(sendName,sendData);
+
+      var count = 2;
+      var checkComplete = function(){       
+        --count; 
+        if( count === 0 ) {
           QUnit.start(); cb(null);
         }
       }
-
-      setTimeout(function(){
-        window.xpush2.login(USERS[2],PASS[2],function(err){
-          xpush2.on('message',function(ch,name,data){
-            assert.equal(ch, channelName, "channel name is right2!");
-            assert.equal(name, sendName, "send name is right2!");
-            //assert.equal(sendData, data, "send data is right2!"); 
-            cnt++; checkComplete();
-          });
-        });
-      },3000);
     });
   }
 ]);
