@@ -1,2 +1,2 @@
-var HOST = "http://demo.stalk.io:8000";
-var APPID = 'test-app';
+var HOST = "http://localhost:8000";
+var APPID = 'lib-xpush';

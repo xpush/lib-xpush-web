@@ -1,7 +1,6 @@
 var xpush = new XPush(HOST,APPID);
 var xpush1 = new XPush(HOST,APPID);
 var xpush2 = new XPush(HOST,APPID);
-var xpush3 = new XPush(HOST,APPID);
 
 var USERS = ['notdol110','notdol111','notdol112','notdol113'];
 var PASS = ['win1234','win1234','win1234','win1234'];
@@ -61,7 +60,7 @@ async.series([
 
   function(cb){
     QUnit.asyncTest("send Message & receive Message 1 ",function(assert){
-      var MAX = (MSG_CNT) * 2 * 3;
+      var MAX = (MSG_CNT) * 2 * 2;
       expect(MAX);
 
       var channel = CHANNEL[0];

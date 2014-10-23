@@ -85,24 +85,20 @@ async.series([
   },
   function(cb){
     QUnit.asyncTest("retrieve channel1",function(assert){
-      expect(3);
+      expect(1);
       xpush1.getChannels(function(err,result){
-        var channelName = CHANNEL[0];
-        assert.equal(err, null, "channel connect complete!");
+        console.log( result );
         assert.ok(result, "retrieve channel complete! : " + result.length);
-        assert.ok(result.length, 'channel create one!');
         QUnit.start(); cb(null);
       });
     });
   },
   function(cb){
     QUnit.asyncTest("retrieve channel2",function(assert){
-      expect(3);
+      expect(1);
       xpush2.getChannels(function(err,result){
-        var channelName = CHANNEL[0];
-        assert.equal(err, null, "channel connect complete!");
+        console.log( result );
         assert.ok(result, "retrieve channel complete! : " + result.length);
-        assert.ok(result.length, 'channel create one!');
         QUnit.start(); cb(null);
       });
     });
@@ -112,11 +108,11 @@ async.series([
       expect(3);
       var channelName = CHANNEL[0];
       xpush.exitChannel(channelName, function(err,result){
-        assert.equal(err, null, "Exit connect complete!");
+        assert.equal(err, null, "notdol110 exit channel complete!");
         xpush1.exitChannel(channelName, function(err,result){
-          assert.equal(err, null, "Exit connect complete!");
+          assert.equal(err, null, "notdol111 exit channel complete!");
           xpush2.exitChannel(channelName, function(err,result){
-            assert.equal(err, null, "Exit connect complete!");
+            assert.equal(err, null, "notdol112 exit channel complete!");
             QUnit.start(); cb(null);
           });
         });
