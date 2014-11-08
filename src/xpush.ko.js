@@ -23,13 +23,13 @@
     };
     
     /**
-     * Constructor of Xpush
+     * Xpush의 생성자
      * @module Xpush
      * @constructor
-     * @param {string} host - address of session server to connect
+     * @param {string} host - 접속할 Session Server의 address
      * @param {string} appId - application id
-     * @param {string} [eventHandler] - a function for processing the session event
-     * @param {boolean} [autoInitFlag] - flag for whether to automatically initialize
+     * @param {string} [eventHandler] - session event를 처리하기 위한 함수
+     * @param {boolean} [autoInitFlag] - 자동 초기화 여부에 대한 flag
      * @example
      * // Create new Xpush Object
      * var xpush = new Xpush( 'http://demo.stalk.io:8000', 'sample' );
@@ -85,7 +85,7 @@
     };
 
     /**
-     * enable debugging
+     * debug 기능을 켠다.
      * @name enableDebug
      * @memberof Xpush
      * @function
@@ -114,7 +114,7 @@
     };
 
     /**
-     * disable debugging
+     * debug 기능을 끈다.
      * @name disableDebug
      * @memberof Xpush
      * @function
@@ -131,14 +131,14 @@
     };
 
     /**
-     * Register user using the userId and password.
+     * userId와 password를 이용하여 회원가입을 한다.
      * @name signup
      * @memberof Xpush
      * @function
      * @param {string} userId - User Id
      * @param {string} password - Password
      * @param {string} [deviceId=WEB] - Device Id
-     * @param {callback} cb - callback function to be performed after register
+     * @param {callback} cb - 회원가입 후 수행할 callback function
      * @example
      * // Add new user
      * xpush.signup( 'james', '1234', function(err,data){
@@ -158,7 +158,7 @@
     };
 
     /**
-     * Login user using the userId and password.
+     * userId와 password를 이용하여 login을 한다.
      * @name login
      * @memberof Xpush
      * @function
@@ -166,7 +166,7 @@
      * @param {string} password - Password
      * @param {string} [deviceId=WEB] - Device Id
      * @param {string} [mode] - mode
-     * @param {callback} cb - callback function to be performed after login
+     * @param {callback} cb - 로그인 후 수행할 callback function
      * @example
      * 
      * xpush.login( 'james', '1234', function(err,data){
@@ -221,13 +221,13 @@
     };
 
     /**
-     * Set the userId and deviceId to current xpush object. only if the session socket is already connected
+     * 현재 xpush 객체에 userId와 deviceId를 세팅한다. session socket이 이미 연결되어 있는 경우만 
      * @name setSessionInfo
      * @memberof Xpush
      * @function
      * @param {string} userId - User Id
      * @param {string} [deviceId] - Device Id
-     * @param {callback} cb - callback function to be performed after set
+     * @param {callback} cb - 세팅 후 수행할 callback function
      * @example
      * // Set session info
      * xpush.setSessionInfo( 'james', function(){} );
@@ -250,7 +250,7 @@
     };
 
     /**
-     * Disconnect the session socket and channel socket.
+     * session socket 과 channel socket의 연결을 끊는다.
      * @name logout
      * @memberof Xpush
      * @function
@@ -279,14 +279,14 @@
     };
 
     /**
-     * Generates a new channel.
+     * 새로운 channel을 생성한다.
      * @name createChannel
      * @memberof Xpush
      * @function
-     * @param {string} users - userId array to invite channel
+     * @param {string} users - channel에 포함될 userId의 배열
      * @param {string} [channel] - Channel Id
-     * @param {Object} [datas] - JSON for additional channel information
-     * @param {callback} cb - callback function to be performed after generate
+     * @param {Object} [datas] - 추가적인 channel 정보를 위한 JSON
+     * @param {callback} cb - 생성 후 수행할 callback function
      * @example
      * // create random channel without data
      * xpush.createChannel(['james', 'notdol'], function(err, data){
@@ -361,13 +361,13 @@
     };
 
     /**
-     * Generate a new `CHANNEL_ONLY` channel.
+     * 새로운 `CHANNEL_ONLY` 채널을 생성한다.
      * @name createSimpleChannel
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
      * @param {Object} [userObj] - UserObject( U : userID, D : deviceId )
-     * @param {callback} cb - callback function to be performed after generate
+     * @param {callback} cb - 생성 후 수행할 callback function
      * @example
      * // create simple channel without userObject
      * xpush.createSimpleChannel('channel01', function(){
@@ -414,11 +414,11 @@
     };
 
     /**
-     * Query the channel list from the server.
+     * server에서 channel list를 조회한다.
      * @name getChannels
      * @memberof Xpush
      * @function
-     * @param {callback} cb - callback function to be performed after query
+     * @param {callback} cb - 조회 후 수행할 callback function
      * @example
      * // Get channels
      * xpush.getChannels(function(err,datas){
@@ -446,13 +446,13 @@
     };
 
     /**
-     * Modify the channel information of the server.
+     * server의 channel 정보를 수정한다.
      * @name updateChannel
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
-     * @param {Object} query - mongo DB query form as a JSON
-     * @param {callback} cb - callback function to be performed after modify
+     * @param {Object} query - mongo DB query 형태로 된 JSON
+     * @param {callback} cb - 수정 후 수행할 callback function
      * // update channel
      * @example
      * xpush.updateChannel( 'channel02', { $set:{'DT':{'NM':'notdol1'}}}, function(err, result){
@@ -470,12 +470,12 @@
     };
 
     /**
-     * The channel list where the user is connected to the current channel will be viewed in redis.
+     * 현재 channel에 연결된 사용자가 있는 channel list를 redis에서 조회한다.
      * @name getChannelsActive
      * @memberof Xpush
      * @function
      * @param {Object} data - ( 'key': '' )
-     * @param {callback} cb - callback function to be performed after retrieve
+     * @param {callback} cb - 조회 후 수행할 callback function
      * @example
      * // Retrieve channels that start with channel
      * xpush.getChannelsActive( {'key':'channel*'}, function(results){
@@ -491,7 +491,7 @@
     };
 
     /**
-     * Get the current channel information in xpush object.
+     * 현재 xpush object 안의 channel 정보를 가져온다.
      * @name getChannel
      * @memberof Xpush
      * @function
@@ -511,12 +511,12 @@
     };
 
     /**
-     * Query the channel information of the server.
+     * server의 channel 정보를 조회한다.
      * @name getChannelData
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
-     * @param {callback} cb - callback function to be performed after query
+     * @param {callback} cb - 조회 후 수행할 callback function
      * @example
      * xpush.getChannelData( channel, function(err,data){
      *   console.log( 'retrieve channel success : ', data);
@@ -530,13 +530,13 @@
     };
 
     /**
-     * Join to the channel.
+     * channel에 Join한다.
      * @name joinChannel
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
      * @param {Object} param - JSON Data ( U, DT )
-     * @param {callback} cb - callback function to be performed after join
+     * @param {callback} cb - 합류 후 수행할 callback function
      * @example
      * xpush.joinChannel( 'channel03', {'U':['notdol']}, function(result){
      *   console.log( 'result : ', result);
@@ -552,12 +552,12 @@
     };
 
     /**
-     * Exit from the channel
+     * channel에서 나간다.
      * @name exitChannel
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
-     * @param {callback} cb - callback function to be performed after exit
+     * @param {callback} cb - 나간 후 수행할 callback function
      * @example
      * xpush.exitChannel( 'channel03', function(err, result){
      *   console.log( 'result : ', result);
@@ -571,11 +571,11 @@
     };
 
     /**
-     * Bring the channel information asynchronously. If the channel information is not present in the object, it queries the channel information from the server.
+     * 비동기로 channel 정보를 가져온다. channel 정보가 객체 안에 존재하지 않으면, channel 정보를 server에서 조회한다.
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
-     * @param {callback} cb - callback function to be performed after get
+     * @param {callback} cb - 조회 후 수행할 callback function
      * @example
      * xpush.getChannelAsync( 'channel03', function(err, result){
      *   console.log( 'result : ', result);
@@ -603,14 +603,14 @@
     };
 
     /**
-     * Upload the file DOM object using the socket stream to 
+     * file DOM 객체를 이용하여 socket stream을 이용하여 file을 upload한다.
      * @name uploadStream
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
      * @param {Object} inputObj - JSON Objec( 'file' : file DOM Oject for upload, 'type' : '' )
-     * @param {function} fnPrg - function to show the upload progress
-     * @param {callback} fnCallback - callback function to be performed after upload
+     * @param {function} fnPrg - 업로도 진행 상황을 보여주기 위한 function
+     * @param {callback} fnCallback - 업로드 완료 후 수행할 callback function
      * @example
      * var fileObj = document.getElementById('file');
      * xpush.uploadStream( 'channel03', {
@@ -664,15 +664,15 @@
     };
 
     /**
-     * Upload files using the REST API because the mobile is not supported file dom object
+     * file dom 객체가 지원되지 않는 mobile에서는 REST API를 이용하여 파일을 업로드한다.
      * @name uploadFile
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
-     * @param {string} fileUri - fileUri to upload
+     * @param {string} fileUri - 업로드할 fileUri
      * @param {Object} inputObj - JSON Objec( 'type' : '', 'name' : Original File name )
-     * @param {function} fnPrg - function to show the upload progress
-     * @param {callback} fnCallback - callback function to be performed after upload
+     * @param {function} fnPrg - 업로도 진행 상황을 보여주기 위한 function
+     * @param {callback} fnCallback - 업로드 완료 후 수행할 callback function 
      * @example
      * xpush.uploadFile('channelId', 'content://media/external/images/media/636',
      * {type : 'image', name:'image.png' },
@@ -735,13 +735,13 @@
     };
 
     /**
-     * Get the file url which is uploaded completely
+     * 업로드 완료된 file의 url을 가져온다.
      * @name getFileUrl
      * @memberof Xpush
      * @function
      * @param {string} channel - Channel Id
-     * @param {string} fileName - received return name after file uploading 
-     * @return {string} url where you can download the file
+     * @param {string} fileName - 업로드후 return 받은 파일의 name
+     * @return {string} 파일을 다운로드 받을 수 있는 url
      * @example
      * var url = xpush.getFileUrl( 'channel03', data.result.name )
      */
@@ -762,7 +762,7 @@
     };
 
     /**
-     * If the channel is a connection object and returns a channel connection, otherwise create a new `Connection`.
+     * 채널이 연결이 되어 있으면 channel connection 객체를 반환하고, 그렇지 않으면 새로운 `Connection`을 만든다.
      * @private
      * @function
      * @param {string} channel - Channel Id
@@ -804,7 +804,7 @@
     };
 
     /**
-     * Disconnect the channel socket, connection objects are deleted from managed list.
+     * channel socket의 연결을 끊은 후, 관리 중인 connection 객체에서 삭제한다.
      * @private
      * @function
      * @param {Object} channel - Channel Id
@@ -821,7 +821,7 @@
     };
 
     /**
-     * confirm whether channel is exist or not
+     * channel이 존재하는지 확인 후, 결과를 반환한다.
      * @name isExistChannel
      * @memberof Xpush
      * @function
@@ -841,12 +841,12 @@
     };
 
     /**
-     * Query the user list from the server.
+     * server에서 사용자 list를 조회한다.
      * @name getUserList
      * @memberof Xpush
      * @function
      * @param {Object} [params] - param for search user.
-     * @param {function} cb - callback function to be performed after query
+     * @param {function} cb - 조회 후 수행할 callback function
      * @example
      * xpush.getUserList( {'page':{'num':1,'size':10} },function(err, users){
      *   console.log( users );
@@ -866,12 +866,12 @@
     };
 
     /**
-     * Query the user list from the server. Paging is possible.
+     * server에서 사용자 list를 조회한다. pageing 처리가 가능하다.
      * @name queryUser
      * @memberof Xpush
      * @function
      * @param {Object} _params - ( query, column )
-     * @param {callback} cb - callback function to be performed after query
+     * @param {callback} cb - 조회 후 수행할 callback function
      * @example
      * var param = {query : {'DT.NM':'james'}, column: { U: 1, DT: 1, _id: 0 } };
      * xpush.queryUser( param, function( err, userArray, count ){
@@ -908,7 +908,7 @@
     };
 
     /**
-     * Transmits the data.
+     * data를 전송한다.
      * @name send
      * @memberof Xpush
      * @function
@@ -927,12 +927,12 @@
     };
 
     /**
-     * Query the unread server message.
-     * After inquiry, call the `message-received` API to delete the viewed message.
+     * server에서 읽지 않은 message를 조회한다.
+     * 조회 후, `message-received` API를 호출하여 조회한 message를 삭제한다.
      * @name getUnreadMessage
      * @memberof Xpush
      * @function
-     * @param {callback} cb - callback function to be performed after query
+     * @param {callback} cb - 조회 후 수행할 callback function
      * @example
      * xpush.getUnreadMessage( function(err, result){
      *   console.log( result );
@@ -954,11 +954,11 @@
     };
 
     /**
-     * Get the channel server information to connect
+     * 연결할 channel server 정보를 가져온다.
      * @private
      * @function
      * @param {string} channel - Channel Id
-     * @param {callback} cb - callback function to be performed after get
+     * @param {callback} cb - 획득 후 수행할 callback function
      */
     XPush.prototype._getChannelInfo = function(channel, cb){
       var self = this;
@@ -967,12 +967,12 @@
     };
 
     /**
-     * Query the user list on the server that contains the group.
+     * 서버에서 group에 포함된 사용자 list를 조회한다.
      * @name getGroupUsers
      * @memberof Xpush
      * @function
-     * @param {string} groupId - Find groupId
-     * @param {callback} cb - callback function to be performed after query
+     * @param {string} groupId - 찾을 groupId
+     * @param {callback} cb - 조회 후 수행할 callback function
      * @example
      * xpush.getGroupUsers( 'james', function( err, users ){
      *   console.log( users );
@@ -988,13 +988,13 @@
     };
 
     /**
-     * Add a group id to one or multiple users.
+     * 하나 또는 다수의 사용자에 group id를 추가한다.
      * @name addUserToGroup
      * @memberof Xpush
      * @function
      * @param {string} [groupId] - userId
-     * @param {array} userIds - users array to add
-     * @param {callback} cb - callback function to be performed after add
+     * @param {array} userIds - 추가할 사용자들의 ID array
+     * @param {callback} cb - 추가 후 수행할 callback function
      * @example
      * xpush.addUserToGroup( 'james', ['notdol','john'], function( err, result ){
      *   console.log( result );
@@ -1012,13 +1012,13 @@
     };
 
     /**
-     * Delete the user from the group.
+     * user를 group에서 삭제한다.
      * @name removeUserFromGroup
      * @memberof Xpush
      * @function
      * @param {string} [groupId] - userId
-     * @param {string} userId - user's ID to delete
-     * @param {callback} cb - callback function to be performed after delete
+     * @param {string} userId - 삭제할 user의 ID
+     * @param {callback} cb - 삭제 후 수행할 callback function
      * @example
      * xpush.removeUserFromGroup( 'james', 'notdol', function( err, result ){
      *   console.log( result );
@@ -1048,11 +1048,11 @@
     */
 
     /**
-     * Add an event after the session socket initialization. if it is `autoInitFlag` true, get the channel information and the unread message.
+     * session socket을 초기화 후에 event를 추가한다. `autoInitFlag`가 true면 channel 정보 및 읽지 않은 message를 조회한다.
      * @private
      * @function
      * @param {Object} socket.io
-     * @param {callback} cb - callback function to be performed after init
+     * @param {callback} cb - 초기화 후 수행할 callback function
      */
     XPush.prototype._initSessionSocket = function(socket,cb){
       var self = this;
@@ -1288,12 +1288,12 @@
     }
 
     /**
-     * Generate an event by using the session socket.
+     * session socket을 이용하여 event를 발생시킨다.
      * @private
      * @function
      * @param {string} socket의 event key
      * @param {Object} [params] - object to send
-     * @param {callback} cb - callback function to be performed after event occured
+     * @param {callback} cb - event 발생 후 수행할 callback function
      */
     XPush.prototype.sEmit = function(key, params, cb){
       var self = this;
@@ -1322,7 +1322,7 @@
     };
 
     /**
-     * Register the event and function to the event stack. The specified function is event is called the event.
+     * event stack에 event와 function을 등록한다. 해당 function은 event가 발생시 호출된다.
      * @name on
      * @memberof Xpush
      * @function
@@ -1354,7 +1354,7 @@
     };
 
     /**
-     * Removes the event and function in the event stack 
+     * event stack에서 event와 function을 제거한다.
      * @name off
      * @memberof Xpush
      * @function
@@ -1373,7 +1373,7 @@
     };
 
     /**
-     * Remove all event on the event stack.
+     * event stack의 모든 event를 제거한다.
      * @name off
      * @memberof Xpush
      * @function
@@ -1391,8 +1391,8 @@
     };
 
     /**
-     * Call a function that is registered in the event stack.
-     * When unread message exists, message will be stacked without causing the function of that event soon because it is being initialized status.
+     * event stack에 등록되어 있는 함수를 호출한다.
+     * 읽지 않은 메세지가 존재하면, 초기화 중인 상태이므로 message가 오더라도 해당 event의 function을 즉시 발생시키지 않고 stack에 쌓는다.
      * @private
      * @memberof Xpush
      * @function
