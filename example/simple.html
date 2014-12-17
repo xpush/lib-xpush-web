@@ -8,48 +8,37 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
 <!-- xpush -->
-<script src="http://xpush.github.io/lib/dist/xpush.js"></script>
-
+<script src="xpush.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 <script type="text/javascript">
 // Create new xpush
-var xpush = new XPush('http://demo.stalk.io:8000', 'demo');
+var xpush = new XPush('http://180.182.60.237', 'P-00001');
 
 $(document).ready( function(){
-	// channel01 을 생성합니다.
-	xpush.createSimpleChannel('channel01', function(){
-		// 생성 후에 success 메시지를 보여줍니다.
-		var html =  '<strong>Well done!</strong> Create simple channel success';
-		$( "#success" ).html(html);
-		$( "#success" ).show();
 
-  		// `message` event로 들어오는 data를 받아 화면에 출력합니다.
-		xpush.on( 'message', function(channel, name, data){
-			data = decodeURIComponent( data );
-			$( "#success" ).html( '<strong>Received success</strong> : ' + data );
+	var query = 'A=P-00001&C=zztv&S=46&D=WEB&MD=CHANNEL_ONLY';
+	var socket1 = io.connect('http://114.31.50.122:9000/channel?'+query, {
+		'sync disconnect on unload': true,
+		'force new connection': true
+  });
 
-			// template을 복사하여 새로운 DOM 객체를 생성합니다..
-			var newMessage = $( "#template" ).clone();
+  socket1.on('connect', function ( ) {
+  	console.log( '111 connect success' );
 
-			// 새로 만든 DOM 객체를 수정합니다.
-			newMessage.attr( "id", "template_"+ Date.now() );
-			newMessage.html( data );
+  	socket1.on( 'message', function( msg ) {
+  		console.log( 'received : ' + msg );
+  	});  	
+  });
 
-			// 새로 만든 DOM 객체를 ul DOM에 추가합니다.
-			newMessage.appendTo( "#list" );
-			newMessage.show();
-
-			// 새로 생성한 DOM 객체에 class를 추가합니다.
-			$( ".list-group-item-success" ).each(function(){
-				$(this).removeClass( "list-group-item-success" );
-			});
-			newMessage.addClass( "list-group-item-success" );
-		});
-	});
+	setTimeout( function(){
+  	var param = { 'DT' : "emit message", 'NM' : 'message' };
+  	socket1.emit( 'send', param );
+	}, 3000);
 });
 
 var send = function( ){
 	var msg = $( "#message" ).val();
-	xpush.send( 'channel01', 'message', encodeURIComponent( msg ) );
+	xpush.send( 'zztv', 'message', encodeURIComponent( msg ) );
 	$( "#message" ).val('');
 };
 
