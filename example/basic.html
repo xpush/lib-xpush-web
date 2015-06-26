@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Simple Test</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<!-- xpush -->
+
+<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+
+<script type="text/javascript">
+
+var app = 'P-00001';
+var channel = "test-20150622150434";
+
+$(document).ready( function(){
+
+  var appChannel = app + "/" + channel;
+  // node 조회
+  $.get( "http://session1.popkontv.kr:8000/node/" +appChannel, function( data ) {
+  
+    var url = data.result.server.url;
+    //var url = "https://channel1.popkontv.kr:9000";
+    var serverName = data.result.server.name;
+
+    var DT = {"signId":"jyoung7","inTime":1434100065578,"partnerCode":"P-00001","memberLevel":1,"roomLevel":4,"fanLevel":4,"memberSex":"1","nickName":"nickTest","path":"4","action":"add","signKey":"4AB467FF-EAB1-4FCE-921F-E703279D168B"};
+
+    var query = 'A='+app+'&C='+ channel +'&S='+serverName+'&D=WEB&MD=CHANNEL_ONLY&U=123&DT='+JSON.stringify( DT );
+
+    var socket1 = io.connect(url+'/channel?'+query, {
+      'sync disconnect on unload': true,
+      'force new connection': true
+    });
+
+    socket1.on('connect', function ( ) {
+      console.log( 'connect success' );
+      socket1.on( 'message', function( msg ) {
+        console.log( msg );
+      });   
+    });
+
+    setTimeout( function(){
+      var param = { 'DT' : "emit message", 'NM' : 'message' };
+      socket1.emit( 'send', param );
+    }, 3000);
+
+  }); 
+
+});
+
+</script>
